@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local data and artifacts
+data/raw/
+data/processed/
+data/private/
+exports/
+*.parquet
+*.sqlite
+.DS_Store
