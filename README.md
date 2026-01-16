@@ -47,6 +47,11 @@ python3 src/compute_sales_mix.py
 - `data/processed/global_category_mix.csv`
 - `data/processed/global_product_mix.csv`
 
+## Output Schema
+- Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
+- Product mix files: `category_name`, `item_name`, `total_sales`, `product_sales_pct_of_category`, `product_sales_pct_of_total`
+- Percentages are decimals in the range 0-1 (multiply by 100 for percent).
+
 ## Notes
 - Baselines default to last full month and last 3 full months.
 - A global (all data) sales mix is also generated.
