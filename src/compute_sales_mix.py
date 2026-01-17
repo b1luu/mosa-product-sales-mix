@@ -121,6 +121,28 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _filter_non_product_items(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove non-product items like tips or placeholders."""
+    df = df.copy()
+    if "item_name" not in df.columns:
+        return df
+
+    exclude_patterns = (
+        r"\btips?\b",
+        r"boba tea tote bag",
+        r"free drink",
+        r"custom amount",
+    )
+    mask = (
+        df["item_name"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+    )
+    return df[~mask]
+
+
 def _compute_category_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute category-level sales mix for a given window."""
     if df.empty:
@@ -259,6 +281,7 @@ def main() -> None:
 
     df = _coerce_sales(df)
     df = _filter_refunds(df)
+    df = _filter_non_product_items(df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")

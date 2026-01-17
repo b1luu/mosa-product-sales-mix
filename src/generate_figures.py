@@ -54,6 +54,20 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     if df.empty:
         raise ValueError("Processed product mix is empty; no figure generated.")
 
+    exclude_patterns = (
+        r"\btips?\b",
+        r"boba tea tote bag",
+        r"free drink",
+        r"custom amount",
+    )
+    df = df[
+        ~df["item_name"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+    ]
+
     df = df.sort_values("product_sales_pct_of_total", ascending=True)
     df["label"] = df["item_name"].fillna("Unknown Item")
 
