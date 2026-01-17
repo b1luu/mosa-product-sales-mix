@@ -74,8 +74,16 @@ def generate_product_mix_figure(
     ]
 
     df = df.sort_values("product_sales_pct_of_total", ascending=True)
-    df["label"] = df["item_name"].fillna("Unknown Item")
+    df["item_label"] = df["item_name"].fillna("Unknown Item")
     df["category_label"] = df["category_name"].fillna("Uncategorized")
+    duplicate_items = df["item_label"].duplicated(keep=False)
+    df["label"] = df["item_label"]
+    df.loc[duplicate_items, "label"] = (
+        df.loc[duplicate_items, "item_label"]
+        + " ("
+        + df.loc[duplicate_items, "category_label"]
+        + ")"
+    )
 
     categories = sorted(df["category_label"].unique())
     cmap = plt.get_cmap("tab20")
