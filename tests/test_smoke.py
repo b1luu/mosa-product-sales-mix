@@ -1,5 +1,7 @@
 """Basic smoke tests for module imports and expected functions."""
+import tempfile
 import unittest
+from pathlib import Path
 
 import pandas as pd
 
@@ -179,6 +181,14 @@ class TestSmoke(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             load_data._validate_detailed_export_schema(df)
+
+    def test_select_export_csv_prefers_orders_csv(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            (tmp_path / "orders.csv").write_text("header\n", encoding="utf-8")
+            (tmp_path / "other.csv").write_text("header\n", encoding="utf-8")
+            selected = load_data._select_export_csv(tmp_path)
+            self.assertEqual(selected.name, "orders.csv")
 
 
 if __name__ == "__main__":
