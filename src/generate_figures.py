@@ -37,9 +37,14 @@ def _set_cjk_font() -> str | None:
     return None
 
 
-def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
-    """Create a horizontal bar chart for last month's product mix."""
-    processed_path = base_dir / "data" / "processed" / "last_month_product_mix.csv"
+def generate_product_mix_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a horizontal bar chart for a product mix file."""
+    processed_path = base_dir / "data" / "processed" / processed_name
     if not processed_path.exists():
         raise FileNotFoundError(f"Missing processed file: {processed_path}")
 
@@ -80,7 +85,7 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     fig_height = max(4, min(20, 0.3 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
     bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
-    ax.set_title("Last Month Product Mix", pad=4)
+    ax.set_title(title, pad=4)
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel("Product")
 
@@ -110,7 +115,7 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
 
     figures_dir = base_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
-    output_path = figures_dir / "last_month_product_mix.png"
+    output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
     return output_path
@@ -118,8 +123,20 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
 
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
-    output_path = generate_last_month_product_mix_figure(base_dir)
-    print(f"Saved figure: {output_path}")
+    last_month_output = generate_product_mix_figure(
+        base_dir,
+        "last_month_product_mix.csv",
+        "last_month_product_mix.png",
+        "Last Month Product Mix",
+    )
+    last_3_months_output = generate_product_mix_figure(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_product_mix.png",
+        "Last 3 Months Product Mix",
+    )
+    print(f"Saved figure: {last_month_output}")
+    print(f"Saved figure: {last_3_months_output}")
 
 
 if __name__ == "__main__":
