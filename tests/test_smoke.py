@@ -141,6 +141,17 @@ class TestSmoke(unittest.TestCase):
         self.assertIn("order_datetime", result.columns)
         self.assertFalse(result["order_datetime"].isna().any())
 
+    def test_build_order_datetime_invalid_values(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Date": ["not-a-date"],
+                "Time": ["not-a-time"],
+            }
+        )
+        result = compute_sales_mix._build_order_datetime(df)
+        self.assertIn("order_datetime", result.columns)
+        self.assertTrue(result["order_datetime"].isna().all())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

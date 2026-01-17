@@ -60,3 +60,7 @@ python3 src/compute_sales_mix.py
 - Missing required columns: confirm the export is the detailed line-item report and includes Date, Time, Category, Item, Qty, Gross Sales, and Transaction ID (or equivalent).
 - Multiple CSVs in `data/raw/`: keep a single export file or rename the target file to `orders.csv`.
 - Empty outputs: check that the date range in the export includes recent data and that `Gross Sales` values are not blank or zero.
+
+## Testing
+- Run all tests: `python3 -m unittest`
+- Run smoke tests only: `python3 -m unittest tests.test_smoke`
