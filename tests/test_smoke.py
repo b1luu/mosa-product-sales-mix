@@ -37,6 +37,24 @@ class TestSmoke(unittest.TestCase):
         self.assertAlmostEqual(pct["Coffee"], 0.75)
         self.assertAlmostEqual(pct["Tea"], 0.25)
 
+    def test_compute_product_mix_totals(self) -> None:
+        df = pd.DataFrame(
+            {
+                "category_name": ["Coffee", "Coffee", "Coffee", "Tea"],
+                "item_name": ["Latte", "Latte", "Drip", "Green"],
+                "item_gross_sales": [6.0, 4.0, 10.0, 10.0],
+            }
+        )
+        result = compute_sales_mix._compute_product_mix(df)
+        latte = result[(result["category_name"] == "Coffee") & (result["item_name"] == "Latte")].iloc[0]
+        drip = result[(result["category_name"] == "Coffee") & (result["item_name"] == "Drip")].iloc[0]
+        green = result[(result["category_name"] == "Tea") & (result["item_name"] == "Green")].iloc[0]
+
+        self.assertAlmostEqual(latte["product_sales_pct_of_total"], 10.0 / 30.0)
+        self.assertAlmostEqual(latte["product_sales_pct_of_category"], 10.0 / 20.0)
+        self.assertAlmostEqual(drip["product_sales_pct_of_category"], 10.0 / 20.0)
+        self.assertAlmostEqual(green["product_sales_pct_of_category"], 1.0)
+
 
 if __name__ == "__main__":
     unittest.main()
