@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 
-from src.load_data import load_square_exports
+from load_data import load_square_exports
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to expected schema."""
