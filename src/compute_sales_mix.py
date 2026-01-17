@@ -42,11 +42,12 @@ def _build_order_datetime(df: pd.DataFrame) -> pd.DataFrame:
     if "order_datetime" in df.columns:
         return df
 
-    has_date = "Date" in df.columns or "date" in df.columns
-    has_time = "Time" in df.columns or "time" in df.columns
+    normalized = {col.strip().lower(): col for col in df.columns}
+    has_date = "date" in normalized
+    has_time = "time" in normalized
     if has_date and has_time:
-        date_col = "Date" if "Date" in df.columns else "date"
-        time_col = "Time" if "Time" in df.columns else "time"
+        date_col = normalized["date"]
+        time_col = normalized["time"]
         df["order_datetime"] = pd.to_datetime(
             df[date_col].astype(str).str.strip()
             + " "

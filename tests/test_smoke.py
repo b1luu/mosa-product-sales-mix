@@ -74,7 +74,9 @@ class TestSmoke(unittest.TestCase):
                 "Gross Sales": ["$5.00"],
             }
         )
-        result = compute_sales_mix._normalize_columns(df)
+        result = compute_sales_mix._build_order_datetime(
+            compute_sales_mix._normalize_columns(df)
+        )
         self.assertIn("order_id", result.columns)
         self.assertIn("order_datetime", result.columns)
         self.assertIn("category_name", result.columns)
@@ -87,6 +89,47 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._coerce_sales(df)
         self.assertEqual(result["item_gross_sales"].tolist(), [1200.50, 0.0, 0.0])
 
+    def test_category_mix_empty_dataframe(self) -> None:
+        df = pd.DataFrame(columns=["category_name", "item_gross_sales"])
+        result = compute_sales_mix._compute_category_mix(df)
+        self.assertEqual(
+            list(result.columns),
+            ["category_name", "total_sales", "category_sales_pct_of_total"],
+        )
+        self.assertTrue(result.empty)
+
+    def test_category_mix_zero_total_sales(self) -> None:
+        df = pd.DataFrame(
+            {
+                "category_name": ["Coffee", "Tea"],
+                "item_gross_sales": [0.0, 0.0],
+            }
+        )
+        result = compute_sales_mix._compute_category_mix(df)
+        self.assertTrue((result["category_sales_pct_of_total"] == 0.0).all())
+
+    def test_normalize_columns_strips_whitespace_and_case(self) -> None:
+        df = pd.DataFrame(
+            {
+                "  cAtEgOrY  ": ["Coffee"],
+                " ITEM ": ["Latte"],
+                "  GROSS SALES  ": ["$3.00"],
+                " tRaNsAcTiOn Id ": ["t1"],
+                " daTe ": ["2025-01-01"],
+                " tImE ": ["10:00"],
+                " qTy ": [1],
+            }
+        )
+        result = compute_sales_mix._build_order_datetime(
+            compute_sales_mix._normalize_columns(df)
+        )
+        self.assertIn("category_name", result.columns)
+        self.assertIn("item_name", result.columns)
+        self.assertIn("item_gross_sales", result.columns)
+        self.assertIn("order_id", result.columns)
+        self.assertIn("order_datetime", result.columns)
+        self.assertIn("quantity", result.columns)
+
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
