@@ -18,7 +18,7 @@ All raw exports and sensitive mappings must stay local and out of version contro
 ## Analysis Scope
 - Inputs: Square detailed line-item export CSVs in `data/raw/`.
 - Outputs: aggregated datasets in `data/processed/`, figures in `figures/`, and written results in `reports/`.
-- Methods: Python 3.11+ scripts in `src/` and notebooks in `notebooks/`.
+- Methods: Python 3.11+ scripts in `src/`.
 
 ## Input Expectations (Detailed Line-Item Export)
 The pipeline expects a Square detailed line-item export with columns that map to:
