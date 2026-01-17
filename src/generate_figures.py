@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from matplotlib import font_manager
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -12,13 +13,42 @@ def _format_pct(value: float) -> str:
     return f"{value * 100:.1f}%"
 
 
+def _set_cjk_font() -> str | None:
+    """Set a CJK-capable font if available; return the chosen font."""
+    preferred_fonts = [
+        "PingFang SC",
+        "PingFang TC",
+        "Heiti SC",
+        "STHeiti",
+        "Hiragino Sans GB",
+        "Noto Sans CJK SC",
+        "Noto Sans CJK",
+        "Noto Sans SC",
+        "Source Han Sans SC",
+        "SimHei",
+        "Microsoft YaHei",
+        "Arial Unicode MS",
+    ]
+    available = {font.name for font in font_manager.fontManager.ttflist}
+    for font_name in preferred_fonts:
+        if font_name in available:
+            plt.rcParams["font.family"] = font_name
+            return font_name
+    return None
+
+
 def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     """Create a horizontal bar chart for last month's product mix."""
     processed_path = base_dir / "data" / "processed" / "last_month_product_mix.csv"
     if not processed_path.exists():
         raise FileNotFoundError(f"Missing processed file: {processed_path}")
 
-    plt.rcParams["font.family"] = "PingFang SC"
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
 
     df = pd.read_csv(processed_path)
     if df.empty:
