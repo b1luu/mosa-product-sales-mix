@@ -83,6 +83,38 @@ def _coerce_sales(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter refunds while keeping Panda-noted rows and removing cancellations."""
+    df = df.copy()
+    columns = {col.strip().lower(): col for col in df.columns}
+    event_col = columns.get("event type") or columns.get("event_type")
+    notes_col = columns.get("notes")
+
+    if notes_col:
+        canceled_mask = (
+            df[notes_col]
+            .astype(str)
+            .str.contains("canceled order", case=False, na=False)
+        )
+        df = df[~canceled_mask]
+
+    if event_col:
+        refund_mask = (
+            df[event_col].astype(str).str.strip().str.lower() == "refund"
+        )
+        if notes_col:
+            panda_mask = (
+                df[notes_col]
+                .astype(str)
+                .str.contains("panda", case=False, na=False)
+            )
+            df = df[~refund_mask | panda_mask]
+        else:
+            df = df[~refund_mask]
+
+    return df
+
+
 def _compute_category_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute category-level sales mix for a given window."""
     if df.empty:
@@ -220,6 +252,7 @@ def main() -> None:
     df = df.dropna(subset=["order_datetime"])
 
     df = _coerce_sales(df)
+    df = _filter_refunds(df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")

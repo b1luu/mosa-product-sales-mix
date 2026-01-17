@@ -155,6 +155,28 @@ class TestSmoke(unittest.TestCase):
         self.assertIn("order_datetime", result.columns)
         self.assertTrue(result["order_datetime"].isna().all())
 
+    def test_filter_refunds_keeps_panda(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Payment", "Refund", "Refund"],
+                "Notes": ["ok", "Panda", "Accidental Charge"],
+                "item_name": ["A", "B", "C"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertEqual(result["item_name"].tolist(), ["A", "B"])
+
+    def test_filter_refunds_drops_canceled_orders(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Payment", "Refund", "Payment"],
+                "Notes": ["Canceled Order", "Panda", "canceled order"],
+                "item_name": ["A", "B", "C"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertEqual(result["item_name"].tolist(), ["B"])
+
     def test_validate_schema_accepts_date_time(self) -> None:
         df = pd.DataFrame(
             {
