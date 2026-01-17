@@ -46,14 +46,46 @@ class TestSmoke(unittest.TestCase):
             }
         )
         result = compute_sales_mix._compute_product_mix(df)
-        latte = result[(result["category_name"] == "Coffee") & (result["item_name"] == "Latte")].iloc[0]
-        drip = result[(result["category_name"] == "Coffee") & (result["item_name"] == "Drip")].iloc[0]
-        green = result[(result["category_name"] == "Tea") & (result["item_name"] == "Green")].iloc[0]
+        latte = result[
+            (result["category_name"] == "Coffee")
+            & (result["item_name"] == "Latte")
+        ].iloc[0]
+        drip = result[
+            (result["category_name"] == "Coffee") & (result["item_name"] == "Drip")
+        ].iloc[0]
+        green = result[
+            (result["category_name"] == "Tea") & (result["item_name"] == "Green")
+        ].iloc[0]
 
         self.assertAlmostEqual(latte["product_sales_pct_of_total"], 10.0 / 30.0)
         self.assertAlmostEqual(latte["product_sales_pct_of_category"], 10.0 / 20.0)
         self.assertAlmostEqual(drip["product_sales_pct_of_category"], 10.0 / 20.0)
         self.assertAlmostEqual(green["product_sales_pct_of_category"], 1.0)
+
+    def test_normalize_columns_maps_variants(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Transaction ID": ["t1"],
+                "Date": ["2025-01-01"],
+                "Time": ["10:00"],
+                "Category": ["Coffee"],
+                "Item": ["Latte"],
+                "Qty": [1],
+                "Gross Sales": ["$5.00"],
+            }
+        )
+        result = compute_sales_mix._normalize_columns(df)
+        self.assertIn("order_id", result.columns)
+        self.assertIn("order_datetime", result.columns)
+        self.assertIn("category_name", result.columns)
+        self.assertIn("item_name", result.columns)
+        self.assertIn("quantity", result.columns)
+        self.assertIn("item_gross_sales", result.columns)
+
+    def test_coerce_sales_handles_missing_and_currency(self) -> None:
+        df = pd.DataFrame({"item_gross_sales": ["$1,200.50", None, "0"]})
+        result = compute_sales_mix._coerce_sales(df)
+        self.assertEqual(result["item_gross_sales"].tolist(), [1200.50, 0.0, 0.0])
 
 
 if __name__ == "__main__":
