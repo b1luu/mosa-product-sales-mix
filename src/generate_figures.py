@@ -80,13 +80,16 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     fig_height = max(4, min(20, 0.3 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
     bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
-    ax.set_title("Last Month Product Mix")
+    ax.set_title("Last Month Product Mix", pad=4)
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel("Product")
 
     ticks = ax.get_xticks()
     ax.set_xticklabels([_format_pct(tick) for tick in ticks])
     ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    for label in ax.get_yticklabels():
+        label.set_fontweight("bold")
 
     ax.bar_label(bars, labels=[_format_pct(v) for v in df["product_sales_pct_of_total"]], padding=3)
     max_pct = df["product_sales_pct_of_total"].max()
