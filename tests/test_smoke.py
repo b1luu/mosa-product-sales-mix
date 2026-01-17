@@ -166,6 +166,39 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._filter_refunds(df)
         self.assertEqual(result["item_name"].tolist(), ["A", "B"])
 
+    def test_filter_refunds_keeps_hp_variants(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Refund", "Refund", "Refund", "Refund", "Refund"],
+                "Notes": ["Hp", "HP", "Hp Order", "Hungry Panda", "Hp 1436"],
+                "item_name": ["A", "B", "C", "D", "E"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertEqual(result["item_name"].tolist(), ["A", "B", "C", "D", "E"])
+
+    def test_filter_refunds_keeps_panda_misspelling(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Refund", "Refund"],
+                "Notes": ["Pandaa", "Panda"],
+                "item_name": ["A", "B"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertEqual(result["item_name"].tolist(), ["A", "B"])
+
+    def test_filter_refunds_drops_blank_notes(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Refund"],
+                "Notes": [""],
+                "item_name": ["A"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertTrue(result.empty)
+
     def test_filter_refunds_drops_canceled_orders(self) -> None:
         df = pd.DataFrame(
             {
