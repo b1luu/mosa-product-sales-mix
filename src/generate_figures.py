@@ -18,6 +18,8 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     if not processed_path.exists():
         raise FileNotFoundError(f"Missing processed file: {processed_path}")
 
+    plt.rcParams["font.family"] = "PingFang SC"
+
     df = pd.read_csv(processed_path)
     if df.empty:
         raise ValueError("Processed product mix is empty; no figure generated.")

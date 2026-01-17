@@ -58,22 +58,6 @@ def _build_order_datetime(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _strip_non_ascii_item_names(df: pd.DataFrame) -> pd.DataFrame:
-    """Keep only ASCII characters in item_name values."""
-    df = df.copy()
-    if "item_name" not in df.columns:
-        return df
-
-    def to_ascii(value: object) -> str:
-        text = "" if pd.isna(value) else str(value)
-        ascii_text = text.encode("ascii", "ignore").decode("ascii")
-        ascii_text = " ".join(ascii_text.split())
-        return ascii_text if ascii_text else "Unknown Item"
-
-    df["item_name"] = df["item_name"].apply(to_ascii)
-    return df
-
-
 def _coerce_sales(df: pd.DataFrame) -> pd.DataFrame:
     """Ensure item_gross_sales is numeric and handle missing values."""
     df = df.copy()
@@ -212,7 +196,6 @@ def main() -> None:
     df = load_square_exports(raw_dir)
     df = _normalize_columns(df)
     df = _build_order_datetime(df)
-    df = _strip_non_ascii_item_names(df)
 
     required_cols = {
         "order_id",
