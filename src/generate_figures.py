@@ -70,10 +70,16 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
 
     df = df.sort_values("product_sales_pct_of_total", ascending=True)
     df["label"] = df["item_name"].fillna("Unknown Item")
+    df["category_label"] = df["category_name"].fillna("Uncategorized")
+
+    categories = sorted(df["category_label"].unique())
+    cmap = plt.get_cmap("tab20")
+    color_map = {cat: cmap(i % cmap.N) for i, cat in enumerate(categories)}
+    colors = df["category_label"].map(color_map)
 
     fig_height = max(4, min(20, 0.3 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
-    bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color="#2A6F8F")
+    bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
     ax.set_title("Last Month Product Mix")
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel("Product")
@@ -85,6 +91,17 @@ def generate_last_month_product_mix_figure(base_dir: Path) -> Path:
     ax.bar_label(bars, labels=[_format_pct(v) for v in df["product_sales_pct_of_total"]], padding=3)
     max_pct = df["product_sales_pct_of_total"].max()
     ax.set_xlim(0, max_pct * 1.15)
+
+    handles = [
+        plt.Line2D([0], [0], color=color_map[cat], lw=6, label=cat)
+        for cat in categories
+    ]
+    ax.legend(
+        handles=handles,
+        title="Category",
+        loc="lower right",
+        frameon=False,
+    )
 
     fig.tight_layout()
 
