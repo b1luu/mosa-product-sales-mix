@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 
+from src.load_data import load_square_exports
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to expected schema."""
@@ -187,25 +188,12 @@ def _print_summary(
 def main() -> None:
     """Run sales mix computation for last month and last 3 months."""
     base_dir = Path(__file__).resolve().parents[1]
-    raw_path = base_dir / "data" / "raw" / "orders.csv"
+    raw_dir = base_dir / "data" / "raw"
     processed_dir = base_dir / "data" / "processed"
     processed_dir.mkdir(parents=True, exist_ok=True)
 
     # Load and standardize raw export data.
-    if not raw_path.exists():
-        csv_candidates = sorted((base_dir / "data" / "raw").glob("*.csv"))
-        if len(csv_candidates) == 1:
-            raw_path = csv_candidates[0]
-            print(f"Using detected export file: {raw_path.name}")
-        elif not csv_candidates:
-            raise FileNotFoundError("No CSV exports found in data/raw/.")
-        else:
-            raise FileNotFoundError(
-                "Multiple CSV exports found in data/raw/. "
-                "Set data/raw/orders.csv or remove extras."
-            )
-
-    df = pd.read_csv(raw_path)
+    df = load_square_exports(raw_dir)
     df = _normalize_columns(df)
     df = _build_order_datetime(df)
 

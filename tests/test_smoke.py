@@ -16,6 +16,7 @@ class TestSmoke(unittest.TestCase):
     def test_load_data_helpers_exist(self) -> None:
         self.assertTrue(hasattr(load_data, "_select_export_csv"))
         self.assertTrue(hasattr(load_data, "load_square_exports"))
+        self.assertTrue(hasattr(load_data, "_validate_detailed_export_schema"))
 
     def test_compute_category_mix_totals(self) -> None:
         df = pd.DataFrame(
@@ -151,6 +152,33 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._build_order_datetime(df)
         self.assertIn("order_datetime", result.columns)
         self.assertTrue(result["order_datetime"].isna().all())
+
+    def test_validate_schema_accepts_date_time(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Transaction ID": ["t1"],
+                "Date": ["2025-01-01"],
+                "Time": ["10:00"],
+                "Category": ["Coffee"],
+                "Item": ["Latte"],
+                "Qty": [1],
+                "Gross Sales": [5.0],
+            }
+        )
+        load_data._validate_detailed_export_schema(df)
+
+    def test_validate_schema_rejects_missing_fields(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Date": ["2025-01-01"],
+                "Time": ["10:00"],
+                "Category": ["Coffee"],
+                "Item": ["Latte"],
+                "Qty": [1],
+            }
+        )
+        with self.assertRaises(ValueError):
+            load_data._validate_detailed_export_schema(df)
 
 
 if __name__ == "__main__":
