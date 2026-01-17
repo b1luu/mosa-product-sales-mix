@@ -55,7 +55,7 @@ python3 src/compute_sales_mix.py
 ## Notes
 - Baselines default to last full month and last 3 full months.
 - A global (all data) sales mix is also generated.
-- Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` contains `Panda`. Rows with `Notes` containing `Canceled Order` are always removed.
+- Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed.
 
 ## Troubleshooting
 - Missing required columns: confirm the export is the detailed line-item report and includes Date, Time, Category, Item, Qty, Gross Sales, and Transaction ID (or equivalent).

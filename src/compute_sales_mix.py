@@ -8,6 +8,9 @@ try:
 except ImportError:  # pragma: no cover - fallback for package-style imports
     from src.load_data import load_square_exports
 
+# Refund notes that should be treated as valid sales.
+KEEP_REFUND_PATTERNS = (r"panda", r"hungry panda", r"\bhp\b")
+
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to expected schema."""
     df = df.copy()
@@ -93,8 +96,6 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
     event_col = columns.get("event type") or columns.get("event_type")
     notes_col = columns.get("notes")
 
-    keep_refund_patterns = (r"panda", r"hungry panda", r"\bhp\b")
-
     if notes_col:
         canceled_mask = (
             df[notes_col]
@@ -111,7 +112,7 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
             keep_refund_mask = (
                 df[notes_col]
                 .astype(str)
-                .str.contains("|".join(keep_refund_patterns), case=False, na=False)
+                .str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
             )
             df = df[~refund_mask | keep_refund_mask]
         else:
