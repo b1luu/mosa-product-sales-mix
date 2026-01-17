@@ -130,6 +130,17 @@ class TestSmoke(unittest.TestCase):
         self.assertIn("order_datetime", result.columns)
         self.assertIn("quantity", result.columns)
 
+    def test_build_order_datetime_from_date_time(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Date": ["2025-01-01"],
+                "Time": ["10:15"],
+            }
+        )
+        result = compute_sales_mix._build_order_datetime(df)
+        self.assertIn("order_datetime", result.columns)
+        self.assertFalse(result["order_datetime"].isna().any())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
