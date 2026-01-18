@@ -199,6 +199,69 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._filter_refunds(df)
         self.assertTrue(result.empty)
 
+    def test_assign_tea_base_rules(self) -> None:
+        df = pd.DataFrame(
+            {
+                "item_name": [
+                    "Taiwanese Retro",
+                    "Pistachio Mist",
+                    "Brown Sugar Mist",
+                    "Grapefruit Bloom",
+                    "Fresh Fruit Tea",
+                    "Fresh Fruit Tea",
+                    "Genmai Green Milk Tea",
+                    "TGY Oolong Tea with Osmanthus Honey",
+                    "Matcha Latte",
+                ],
+                "modifiers_applied": [
+                    "",
+                    "",
+                    "",
+                    "",
+                    "Green Tea, 50% Ice",
+                    "Four Seasons Tea, 50% Ice",
+                    "Green Tea, 50% Sugar",
+                    "",
+                    "",
+                ],
+                "category_name": [
+                    "Mosa Signature",
+                    "Mosa Signature",
+                    "Mosa Signature",
+                    "Mosa Signature",
+                    "Mosa Signature",
+                    "Mosa Signature",
+                    "Milk Tea",
+                    "Fresh Brewed Tea",
+                    "Matcha Series",
+                ],
+                "order_datetime": pd.to_datetime(
+                    [
+                        "2025-01-01 10:00",
+                        "2025-01-01 10:05",
+                        "2025-01-01 10:10",
+                        "2025-01-01 10:15",
+                        "2025-01-01 10:20",
+                        "2025-01-01 10:25",
+                        "2025-01-01 10:30",
+                        "2025-01-01 10:35",
+                        "2025-01-01 10:40",
+                    ]
+                ),
+            }
+        )
+        result = compute_sales_mix._assign_tea_base(df)
+        bases = result["tea_base"].tolist()
+        self.assertEqual(bases[0], "Black")
+        self.assertEqual(bases[1], "Genmai Green")
+        self.assertEqual(bases[2], "TGY Oolong")
+        self.assertEqual(bases[3], "Four Seasons")
+        self.assertEqual(bases[4], "Green")
+        self.assertEqual(bases[5], "Four Seasons")
+        self.assertEqual(bases[6], "Genmai Green")
+        self.assertEqual(bases[7], "TGY Oolong")
+        self.assertEqual(bases[8], "Matcha")
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
