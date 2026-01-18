@@ -388,18 +388,29 @@ def generate_category_share_donut(
     fig, ax = plt.subplots(figsize=(8, 8))
     wedges, texts, autotexts = ax.pie(
         values,
-        labels=labels,
+        labels=None,
         autopct=lambda pct: f"{pct:.1f}%",
         startangle=90,
         counterclock=False,
         wedgeprops={"width": 0.4, "edgecolor": "white"},
         textprops={"fontsize": 9},
+        pctdistance=0.75,
     )
     ax.set_title(title, pad=8)
     ax.axis("equal")
 
-    for text in texts:
+    for text in autotexts:
         text.set_fontweight("bold")
+        text.set_color("#1F2937")
+
+    ax.legend(
+        wedges,
+        labels,
+        title="Category",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+    )
 
     fig.tight_layout()
 
