@@ -282,16 +282,16 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
         "Buckwheat Barley",
     )
     tea_base = tea_base.mask(
-        combined.str.contains("four seasons|four season", na=False)
-        & (tea_base == "Unknown"),
-        "Four Seasons",
-    )
-    tea_base = tea_base.mask(
         combined.str.contains(r"\bblack tea\b|\bblack\b", regex=True, na=False)
         & (tea_base == "Unknown"),
         "Black",
     )
     tea_base = tea_base.mask(green_mask & (tea_base == "Unknown"), "Green")
+    tea_base = tea_base.mask(
+        combined.str.contains("four seasons|four season", na=False)
+        & (tea_base == "Unknown"),
+        "Four Seasons",
+    )
 
     df["tea_base"] = tea_base
     return df
