@@ -676,6 +676,22 @@ def _compute_daily_sales_zscore(daily_sales: pd.DataFrame) -> pd.DataFrame:
     return daily
 
 
+def _compute_top_daily_anomalies(
+    daily_sales_zscore: pd.DataFrame, top_n: int = 10
+) -> pd.DataFrame:
+    """Select top daily anomalies by absolute z-score."""
+    if daily_sales_zscore.empty:
+        return pd.DataFrame(
+            columns=["date", "total_sales", "weekday", "baseline_mean", "baseline_std", "z_score"]
+        )
+
+    ranked = daily_sales_zscore.copy()
+    ranked["abs_z_score"] = ranked["z_score"].abs()
+    ranked = ranked.sort_values("abs_z_score", ascending=False).head(top_n)
+    ranked = ranked.drop(columns=["abs_z_score"])
+    return ranked
+
+
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
     """Compute hourly sales for a specific item name query."""
     if df.empty:
@@ -862,6 +878,9 @@ def main() -> None:
     global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
     global_daily_sales = _compute_daily_sales(df)
     global_daily_sales_zscore = _compute_daily_sales_zscore(global_daily_sales)
+    global_daily_sales_anomalies = _compute_top_daily_anomalies(
+        global_daily_sales_zscore
+    )
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -967,6 +986,9 @@ def main() -> None:
     )
     global_daily_sales_zscore.to_csv(
         processed_dir / "global_daily_sales_zscore.csv", index=False
+    )
+    global_daily_sales_anomalies.to_csv(
+        processed_dir / "global_daily_sales_anomalies.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
