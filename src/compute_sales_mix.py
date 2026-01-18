@@ -249,6 +249,18 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
         item_lower.str.contains("taiwanese retro", na=False) & (tea_base == "Unknown"),
         "Black",
     )
+    tea_base = tea_base.mask(
+        item_lower.str.contains("pistachio mist", na=False) & (tea_base == "Unknown"),
+        "Genmai Green",
+    )
+    tea_base = tea_base.mask(
+        item_lower.str.contains("brown sugar mist", na=False) & (tea_base == "Unknown"),
+        "TGY Oolong",
+    )
+    tea_base = tea_base.mask(
+        item_lower.str.contains("grapefruit bloom", na=False) & (tea_base == "Unknown"),
+        "Four Seasons",
+    )
 
     genmai_mask = combined.str.contains("genmai", na=False)
     green_mask = combined.str.contains("green", na=False)
