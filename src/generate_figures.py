@@ -10,6 +10,7 @@ import pandas as pd
 from config import EXCLUDE_ITEM_PATTERNS
 
 
+# --- Formatting helpers ---
 def _format_pct(value: float) -> str:
     """Format a decimal percent for axis labels."""
     return f"{value * 100:.1f}%"
@@ -39,6 +40,7 @@ def _set_cjk_font() -> str | None:
     return None
 
 
+# --- Product mix figures ---
 def generate_product_mix_figure(
     base_dir: Path,
     processed_name: str,
@@ -213,6 +215,7 @@ def generate_top_products_figure(
     return output_path
 
 
+# --- Category mix figures ---
 def generate_category_mix_figure(
     base_dir: Path,
     processed_name: str,
@@ -266,6 +269,7 @@ def generate_category_mix_figure(
     return output_path
 
 
+# --- Pareto figure ---
 def generate_pareto_products_figure(
     base_dir: Path,
     processed_name: str,
@@ -343,6 +347,7 @@ def generate_pareto_products_figure(
     return output_path
 
 
+# --- Donut figure ---
 def generate_category_share_donut(
     base_dir: Path,
     processed_name: str,
@@ -406,6 +411,7 @@ def generate_category_share_donut(
     return output_path
 
 
+# --- Channel mix figures ---
 def generate_channel_mix_figure(
     base_dir: Path,
     processed_name: str,
@@ -461,6 +467,7 @@ def generate_channel_mix_figure(
     return output_path
 
 
+# --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
     last_month_output = generate_product_mix_figure(

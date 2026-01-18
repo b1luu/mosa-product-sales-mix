@@ -10,6 +10,7 @@ except ImportError:  # pragma: no cover - fallback for package-style imports
     from src.load_data import load_square_exports
     from src.config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS
 
+# --- Data normalization and cleaning helpers ---
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to expected schema."""
     df = df.copy()
@@ -147,6 +148,7 @@ def _filter_non_product_items(df: pd.DataFrame) -> pd.DataFrame:
     return df[~mask]
 
 
+# --- Aggregations ---
 def _compute_category_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute category-level sales mix for a given window."""
     if df.empty:
@@ -316,6 +318,7 @@ def _compute_product_mix(df: pd.DataFrame) -> pd.DataFrame:
     return product_mix
 
 
+# --- Reporting helpers ---
 def _print_summary(
     category_mix: pd.DataFrame,
     product_mix: pd.DataFrame,
@@ -345,6 +348,7 @@ def _print_summary(
             )
 
 
+# --- Entry point ---
 def main() -> None:
     """Run sales mix computation for last month and last 3 months."""
     base_dir = Path(__file__).resolve().parents[1]
