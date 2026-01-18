@@ -15,6 +15,7 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     rename_map = {}
 
+    # Map common Square export headers to a normalized schema.
     column_map = {
         "order_id": ["order_id", "order id", "order", "transaction id"],
         "order_datetime": ["order_datetime", "order datetime", "created at"],
@@ -34,6 +35,7 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     for target, variants in column_map.items():
         for variant in variants:
             for col in df.columns:
+                # Case-insensitive, whitespace-tolerant header matching.
                 if col.strip().lower() == variant:
                     rename_map[col] = target
                     break
@@ -48,6 +50,7 @@ def _build_order_datetime(df: pd.DataFrame) -> pd.DataFrame:
     if "order_datetime" in df.columns:
         return df
 
+    # If order_datetime isn't provided, combine Date + Time into a timestamp.
     normalized = {col.strip().lower(): col for col in df.columns}
     has_date = "date" in normalized
     has_time = "time" in normalized
@@ -96,6 +99,7 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
     notes_col = columns.get("notes")
 
     if notes_col:
+        # Drop explicit cancellations regardless of event type.
         canceled_mask = (
             df[notes_col]
             .astype(str)
@@ -114,6 +118,7 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
                 .str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
             )
             if "item_gross_sales" in df.columns:
+                # Treat valid Hungry Panda refunds as positive sales.
                 panda_refunds = refund_mask & keep_refund_mask
                 df.loc[panda_refunds, "item_gross_sales"] = df.loc[
                     panda_refunds, "item_gross_sales"
@@ -131,6 +136,7 @@ def _filter_non_product_items(df: pd.DataFrame) -> pd.DataFrame:
     if "item_name" not in df.columns:
         return df
 
+    # Remove non-sales line items from mix calculations.
     mask = (
         df["item_name"]
         .astype(str)
@@ -177,6 +183,7 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
         df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
     )
 
+    # Priority: HP tags first, then delivery platforms, otherwise in-person.
     hungry_panda = notes.str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
     doordash = channel.str.contains("doordash", case=False, na=False)
     ubereats = channel.str.contains("uber", case=False, na=False)
@@ -195,6 +202,7 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     )
     channel_group = channel_group.mask(other_mask, "Other")
 
+    # Split in-person orders into kiosk vs counter.
     in_person_channel = pd.Series("Counter", index=df.index)
     kiosk_mask = channel.str.contains("kiosk", case=False, na=False)
     in_person_channel = in_person_channel.mask(kiosk_mask, "Kiosk")
