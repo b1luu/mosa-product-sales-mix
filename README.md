@@ -61,7 +61,8 @@ python3 src/compute_sales_mix.py
 ## Notes
 - Baselines default to last full month and last 3 full months.
 - A global (all data) sales mix is also generated.
-- Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed.
+- Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed. Valid Hungry Panda refunds are treated as positive sales.
+- Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
 
 ## Troubleshooting
 - Missing required columns: confirm the export is the detailed line-item report and includes Date, Time, Category, Item, Qty, Gross Sales, and Transaction ID (or equivalent).
@@ -71,3 +72,6 @@ python3 src/compute_sales_mix.py
 ## Testing
 - Run all tests: `python3 -m unittest`
 - Run smoke tests only: `python3 -m unittest tests.test_smoke`
+
+## Figures
+- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, and a Pareto chart.
