@@ -80,12 +80,16 @@ python3 src/generate_figures.py
 - `data/processed/global_weekday_hourly_sales.csv`
 - `data/processed/global_weekend_hourly_sales.csv`
 - `data/processed/last_month_featured_item_hourly_sales.csv`
+- `data/processed/last_month_fresh_fruit_tea_base_mix.csv`
+- `data/processed/last_3_months_fresh_fruit_tea_base_mix.csv`
+- `data/processed/global_fresh_fruit_tea_base_mix.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
 - Product mix files: `category_name`, `item_name`, `total_sales`, `product_sales_pct_of_category`, `product_sales_pct_of_total`
 - Tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
 - Milk type mix files: `milk_type`, `total_sales`, `milk_type_sales_pct_of_total`
+- Fresh fruit tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
 - Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
 - Percentages are decimals in the range 0-1 (multiply by 100 for percent).
 
@@ -114,4 +118,4 @@ python3 src/generate_figures.py
 - Run smoke tests only: `python3 -m unittest tests.test_smoke`
 
 ## Figures
-- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, peak hours, and a Pareto chart.
+- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, peak hours, and a Pareto chart.
