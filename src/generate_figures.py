@@ -113,7 +113,7 @@ def generate_product_mix_figure(
     ax.legend(
         handles=handles,
         title="Category",
-        loc="lower right",
+        loc="upper left",
         frameon=False,
     )
 
