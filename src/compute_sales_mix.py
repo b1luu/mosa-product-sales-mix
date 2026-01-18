@@ -650,6 +650,32 @@ def _compute_daily_sales(df: pd.DataFrame) -> pd.DataFrame:
     return daily
 
 
+def _compute_daily_sales_zscore(daily_sales: pd.DataFrame) -> pd.DataFrame:
+    """Compute z-scores for daily sales against weekday baselines."""
+    if daily_sales.empty:
+        return pd.DataFrame(
+            columns=["date", "total_sales", "weekday", "baseline_mean", "baseline_std", "z_score"]
+        )
+
+    daily = daily_sales.copy()
+    daily["date"] = pd.to_datetime(daily["date"])
+    daily["weekday"] = daily["date"].dt.day_name()
+
+    stats = (
+        daily.groupby("weekday", dropna=False)["total_sales"]
+        .agg(baseline_mean="mean", baseline_std="std")
+        .reset_index()
+    )
+    daily = daily.merge(stats, on="weekday", how="left")
+    daily["z_score"] = daily.apply(
+        lambda row: 0.0
+        if row["baseline_std"] == 0 or pd.isna(row["baseline_std"])
+        else (row["total_sales"] - row["baseline_mean"]) / row["baseline_std"],
+        axis=1,
+    )
+    return daily
+
+
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
     """Compute hourly sales for a specific item name query."""
     if df.empty:
@@ -835,6 +861,7 @@ def main() -> None:
     global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)
     global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
     global_daily_sales = _compute_daily_sales(df)
+    global_daily_sales_zscore = _compute_daily_sales_zscore(global_daily_sales)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -937,6 +964,9 @@ def main() -> None:
     )
     global_daily_sales.to_csv(
         processed_dir / "global_daily_sales.csv", index=False
+    )
+    global_daily_sales_zscore.to_csv(
+        processed_dir / "global_daily_sales_zscore.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
