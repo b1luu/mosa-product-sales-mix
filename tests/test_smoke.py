@@ -212,6 +212,21 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(result["item_name"].tolist(), ["A"])
         self.assertEqual(result["item_gross_sales"].iloc[0], 5.0)
 
+    def test_filter_non_product_items(self) -> None:
+        df = pd.DataFrame(
+            {
+                "item_name": [
+                    "Tip",
+                    "Free Drink (100 Reward)",
+                    "Custom Amount",
+                    "Boba Tea Tote Bag",
+                    "Latte",
+                ]
+            }
+        )
+        result = compute_sales_mix._filter_non_product_items(df)
+        self.assertEqual(result["item_name"].tolist(), ["Latte"])
+
     def test_filter_refunds_drops_canceled_orders(self) -> None:
         df = pd.DataFrame(
             {
