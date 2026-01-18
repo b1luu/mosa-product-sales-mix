@@ -199,6 +199,19 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._filter_refunds(df)
         self.assertTrue(result.empty)
 
+    def test_filter_refunds_abs_panda_sales(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Event Type": ["Refund", "Refund"],
+                "Notes": ["Panda", "Accidental Charge"],
+                "item_gross_sales": [-5.0, -7.0],
+                "item_name": ["A", "B"],
+            }
+        )
+        result = compute_sales_mix._filter_refunds(df)
+        self.assertEqual(result["item_name"].tolist(), ["A"])
+        self.assertEqual(result["item_gross_sales"].iloc[0], 5.0)
+
     def test_filter_refunds_drops_canceled_orders(self) -> None:
         df = pd.DataFrame(
             {

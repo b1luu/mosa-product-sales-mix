@@ -114,6 +114,11 @@ def _filter_refunds(df: pd.DataFrame) -> pd.DataFrame:
                 .astype(str)
                 .str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
             )
+            if "item_gross_sales" in df.columns:
+                panda_refunds = refund_mask & keep_refund_mask
+                df.loc[panda_refunds, "item_gross_sales"] = df.loc[
+                    panda_refunds, "item_gross_sales"
+                ].abs()
             df = df[~refund_mask | keep_refund_mask]
         else:
             df = df[~refund_mask]
