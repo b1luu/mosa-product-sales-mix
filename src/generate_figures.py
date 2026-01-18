@@ -694,8 +694,8 @@ def main() -> None:
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
         color_map={
-            "Milk Tea": "#6E7656",
-            "Au Lait": "#4F5A3F",
+            "Milk Tea": "#5A8F3A",
+            "Au Lait": "#3E6B2C",
         },
     )
     milk_type_last_3_months_output = generate_channel_mix_figure(
@@ -707,8 +707,8 @@ def main() -> None:
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
         color_map={
-            "Milk Tea": "#6E7656",
-            "Au Lait": "#4F5A3F",
+            "Milk Tea": "#5A8F3A",
+            "Au Lait": "#3E6B2C",
         },
     )
     milk_type_global_output = generate_channel_mix_figure(
@@ -720,8 +720,8 @@ def main() -> None:
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
         color_map={
-            "Milk Tea": "#6E7656",
-            "Au Lait": "#4F5A3F",
+            "Milk Tea": "#5A8F3A",
+            "Au Lait": "#3E6B2C",
         },
     )
     fresh_fruit_tea_base_last_month_output = generate_channel_mix_figure(
@@ -733,8 +733,8 @@ def main() -> None:
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
         color_map={
-            "Green": "#6E7656",
-            "Four Seasons": "#4F5A3F",
+            "Green": "#5A8F3A",
+            "Four Seasons": "#3E6B2C",
         },
     )
     fresh_fruit_tea_base_last_3_months_output = generate_channel_mix_figure(
@@ -746,8 +746,8 @@ def main() -> None:
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
         color_map={
-            "Green": "#6E7656",
-            "Four Seasons": "#4F5A3F",
+            "Green": "#5A8F3A",
+            "Four Seasons": "#3E6B2C",
         },
     )
     fresh_fruit_tea_base_global_output = generate_channel_mix_figure(
@@ -759,8 +759,8 @@ def main() -> None:
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
         color_map={
-            "Green": "#6E7656",
-            "Four Seasons": "#4F5A3F",
+            "Green": "#5A8F3A",
+            "Four Seasons": "#3E6B2C",
         },
     )
     tea_base_last_month_output = generate_tea_base_mix_figure(
