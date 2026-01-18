@@ -245,6 +245,21 @@ class TestSmoke(unittest.TestCase):
             selected = load_data._select_export_csv(tmp_path)
             self.assertEqual(selected.name, "orders.csv")
 
+    def test_assign_channel_and_in_person(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Notes": ["HP 1234", "", "", ""],
+                "Channel": ["Mosa Tea", "DoorDash", "Kiosk", ""],
+                "item_gross_sales": [1, 1, 1, 1],
+            }
+        )
+        result = compute_sales_mix._assign_channel(df)
+        self.assertEqual(
+            result["channel_group"].tolist(),
+            ["Hungry Panda", "DoorDash", "In Person", "In Person"],
+        )
+        self.assertEqual(result["in_person_channel"].tolist(), ["", "", "Kiosk", "Counter"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

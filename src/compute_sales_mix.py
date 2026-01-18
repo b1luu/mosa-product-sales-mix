@@ -167,6 +167,100 @@ def _compute_category_mix(df: pd.DataFrame) -> pd.DataFrame:
     return category_mix
 
 
+def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
+    """Assign channel and in-person subchannel labels."""
+    df = df.copy()
+    columns = {col.strip().lower(): col for col in df.columns}
+    channel_col = columns.get("channel")
+    notes_col = columns.get("notes")
+
+    notes = df[notes_col].astype(str) if notes_col else pd.Series("", index=df.index)
+    channel = (
+        df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
+    )
+
+    hungry_panda = notes.str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
+    doordash = channel.str.contains("doordash", case=False, na=False)
+    ubereats = channel.str.contains("uber", case=False, na=False)
+    square_online = channel.str.contains("square online|online", case=False, na=False)
+
+    channel_group = pd.Series("In Person", index=df.index)
+    channel_group = channel_group.mask(hungry_panda, "Hungry Panda")
+    channel_group = channel_group.mask(doordash, "DoorDash")
+    channel_group = channel_group.mask(ubereats, "Uber Eats")
+    channel_group = channel_group.mask(square_online, "Square Online")
+
+    other_mask = (
+        ~hungry_panda & ~doordash & ~ubereats & ~square_online
+        & channel.str.strip().ne("")
+        & ~channel.str.contains("mosa tea|kiosk", case=False, na=False)
+    )
+    channel_group = channel_group.mask(other_mask, "Other")
+
+    in_person_channel = pd.Series("Counter", index=df.index)
+    kiosk_mask = channel.str.contains("kiosk", case=False, na=False)
+    in_person_channel = in_person_channel.mask(kiosk_mask, "Kiosk")
+    in_person_channel = in_person_channel.where(channel_group == "In Person", "")
+
+    df["channel_group"] = channel_group
+    df["in_person_channel"] = in_person_channel
+    return df
+
+
+def _compute_channel_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute channel-level sales mix for a given window."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["channel_group", "total_sales", "channel_sales_pct_of_total"]
+        )
+
+    channel_mix = (
+        df.groupby("channel_group", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = channel_mix["total_sales"].sum()
+    if total_sales == 0:
+        channel_mix["channel_sales_pct_of_total"] = 0.0
+    else:
+        channel_mix["channel_sales_pct_of_total"] = (
+            channel_mix["total_sales"] / total_sales
+        )
+    channel_mix = channel_mix.sort_values("total_sales", ascending=False)
+    return channel_mix
+
+
+def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute in-person subchannel mix for a given window."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["in_person_channel", "total_sales", "in_person_sales_pct_of_total"]
+        )
+
+    in_person = df[df["channel_group"] == "In Person"]
+    if in_person.empty:
+        return pd.DataFrame(
+            columns=["in_person_channel", "total_sales", "in_person_sales_pct_of_total"]
+        )
+
+    in_person_mix = (
+        in_person.groupby("in_person_channel", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = in_person_mix["total_sales"].sum()
+    if total_sales == 0:
+        in_person_mix["in_person_sales_pct_of_total"] = 0.0
+    else:
+        in_person_mix["in_person_sales_pct_of_total"] = (
+            in_person_mix["total_sales"] / total_sales
+        )
+    in_person_mix = in_person_mix.sort_values("total_sales", ascending=False)
+    return in_person_mix
+
+
 def _compute_product_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute product-level sales mix for a given window."""
     if df.empty:
@@ -282,6 +376,7 @@ def main() -> None:
     df = _coerce_sales(df)
     df = _filter_refunds(df)
     df = _filter_non_product_items(df)
+    df = _assign_channel(df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")
@@ -325,10 +420,16 @@ def main() -> None:
 
     last_month_category = _compute_category_mix(df_last_month)
     last_month_product = _compute_product_mix(df_last_month)
+    last_month_channel = _compute_channel_mix(df_last_month)
+    last_month_in_person = _compute_in_person_mix(df_last_month)
     last_3_category = _compute_category_mix(df_last_3_months)
     last_3_product = _compute_product_mix(df_last_3_months)
+    last_3_channel = _compute_channel_mix(df_last_3_months)
+    last_3_in_person = _compute_in_person_mix(df_last_3_months)
     global_category = _compute_category_mix(df)
     global_product = _compute_product_mix(df)
+    global_channel = _compute_channel_mix(df)
+    global_in_person = _compute_in_person_mix(df)
 
     if last_month_category.empty:
         print("Warning: last month category mix is empty.")
@@ -342,6 +443,12 @@ def main() -> None:
         print("Warning: global category mix is empty.")
     if global_product.empty:
         print("Warning: global product mix is empty.")
+    if last_month_channel.empty:
+        print("Warning: last month channel mix is empty.")
+    if last_3_channel.empty:
+        print("Warning: last 3 months channel mix is empty.")
+    if global_channel.empty:
+        print("Warning: global channel mix is empty.")
 
     last_month_category.to_csv(
         processed_dir / "last_month_category_mix.csv", index=False
@@ -357,6 +464,22 @@ def main() -> None:
     )
     global_category.to_csv(processed_dir / "global_category_mix.csv", index=False)
     global_product.to_csv(processed_dir / "global_product_mix.csv", index=False)
+    last_month_channel.to_csv(
+        processed_dir / "last_month_channel_mix.csv", index=False
+    )
+    last_3_channel.to_csv(
+        processed_dir / "last_3_months_channel_mix.csv", index=False
+    )
+    global_channel.to_csv(processed_dir / "global_channel_mix.csv", index=False)
+    last_month_in_person.to_csv(
+        processed_dir / "last_month_in_person_mix.csv", index=False
+    )
+    last_3_in_person.to_csv(
+        processed_dir / "last_3_months_in_person_mix.csv", index=False
+    )
+    global_in_person.to_csv(
+        processed_dir / "global_in_person_mix.csv", index=False
+    )
 
     _print_summary(last_month_category, last_month_product, "Last Month")
     _print_summary(global_category, global_product, "All Data")

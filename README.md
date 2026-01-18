@@ -46,6 +46,12 @@ python3 src/compute_sales_mix.py
 - `data/processed/last_3_months_product_mix.csv`
 - `data/processed/global_category_mix.csv`
 - `data/processed/global_product_mix.csv`
+- `data/processed/last_month_channel_mix.csv`
+- `data/processed/last_3_months_channel_mix.csv`
+- `data/processed/global_channel_mix.csv`
+- `data/processed/last_month_in_person_mix.csv`
+- `data/processed/last_3_months_in_person_mix.csv`
+- `data/processed/global_in_person_mix.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
