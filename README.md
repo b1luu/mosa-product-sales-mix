@@ -6,6 +6,8 @@ This repository analyzes the percentage of total sales by product category and b
 ## Objectives
 - Summarize sales mix by product category.
 - Summarize sales mix by individual product.
+- Summarize sales mix by tea base and milk type.
+- Visualize peak hours and featured-item trends.
 - Produce tidy, reusable outputs for reporting and visualization.
 
 ## Data Privacy Note
@@ -62,10 +64,29 @@ python3 src/generate_figures.py
 - `data/processed/last_month_in_person_mix.csv`
 - `data/processed/last_3_months_in_person_mix.csv`
 - `data/processed/global_in_person_mix.csv`
+- `data/processed/last_month_tea_base_mix.csv`
+- `data/processed/last_3_months_tea_base_mix.csv`
+- `data/processed/global_tea_base_mix.csv`
+- `data/processed/last_month_milk_type_mix.csv`
+- `data/processed/last_3_months_milk_type_mix.csv`
+- `data/processed/global_milk_type_mix.csv`
+- `data/processed/last_month_hourly_sales.csv`
+- `data/processed/last_3_months_hourly_sales.csv`
+- `data/processed/global_hourly_sales.csv`
+- `data/processed/last_month_weekday_hourly_sales.csv`
+- `data/processed/last_month_weekend_hourly_sales.csv`
+- `data/processed/last_3_months_weekday_hourly_sales.csv`
+- `data/processed/last_3_months_weekend_hourly_sales.csv`
+- `data/processed/global_weekday_hourly_sales.csv`
+- `data/processed/global_weekend_hourly_sales.csv`
+- `data/processed/last_month_featured_item_hourly_sales.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
 - Product mix files: `category_name`, `item_name`, `total_sales`, `product_sales_pct_of_category`, `product_sales_pct_of_total`
+- Tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
+- Milk type mix files: `milk_type`, `total_sales`, `milk_type_sales_pct_of_total`
+- Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
 - Percentages are decimals in the range 0-1 (multiply by 100 for percent).
 
 ## Notes
@@ -73,6 +94,8 @@ python3 src/generate_figures.py
 - A global (all data) sales mix is also generated.
 - Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed. Valid Hungry Panda refunds are treated as positive sales.
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
+- Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
+- Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 
 ## Channel Rules
 - Hungry Panda: `Notes` contains `Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, or `Pandaa`.
@@ -91,4 +114,4 @@ python3 src/generate_figures.py
 - Run smoke tests only: `python3 -m unittest tests.test_smoke`
 
 ## Figures
-- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, and a Pareto chart.
+- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, peak hours, and a Pareto chart.
