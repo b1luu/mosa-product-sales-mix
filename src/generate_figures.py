@@ -420,6 +420,8 @@ def generate_channel_mix_figure(
     label_column: str,
     pct_column: str,
     y_label: str = "Channel",
+    color_map: dict[str, str] | None = None,
+    fallback_color: str = "#4C7EA8",
 ) -> Path:
     """Create a horizontal bar chart for channel mix files."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -442,7 +444,11 @@ def generate_channel_mix_figure(
 
     fig_height = max(3.5, min(8, 0.6 * len(df)))
     fig, ax = plt.subplots(figsize=(8, fig_height))
-    bars = ax.barh(df["label"], df[pct_column], color="#4C7EA8")
+    if color_map:
+        colors = df["label"].map(color_map).fillna(fallback_color)
+    else:
+        colors = fallback_color
+    bars = ax.barh(df["label"], df[pct_column], color=colors)
     ax.set_title(title, pad=4)
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel(y_label)
@@ -677,6 +683,10 @@ def main() -> None:
         "milk_type",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
+        color_map={
+            "Milk Tea": "#6E7656",
+            "Au Lait": "#4F5A3F",
+        },
     )
     milk_type_last_3_months_output = generate_channel_mix_figure(
         base_dir,
@@ -686,6 +696,10 @@ def main() -> None:
         "milk_type",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
+        color_map={
+            "Milk Tea": "#6E7656",
+            "Au Lait": "#4F5A3F",
+        },
     )
     milk_type_global_output = generate_channel_mix_figure(
         base_dir,
@@ -695,6 +709,10 @@ def main() -> None:
         "milk_type",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
+        color_map={
+            "Milk Tea": "#6E7656",
+            "Au Lait": "#4F5A3F",
+        },
     )
     fresh_fruit_tea_base_last_month_output = generate_channel_mix_figure(
         base_dir,
@@ -704,6 +722,10 @@ def main() -> None:
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
+        color_map={
+            "Green": "#6E7656",
+            "Four Seasons": "#4F5A3F",
+        },
     )
     fresh_fruit_tea_base_last_3_months_output = generate_channel_mix_figure(
         base_dir,
@@ -713,6 +735,10 @@ def main() -> None:
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
+        color_map={
+            "Green": "#6E7656",
+            "Four Seasons": "#4F5A3F",
+        },
     )
     fresh_fruit_tea_base_global_output = generate_channel_mix_figure(
         base_dir,
@@ -722,6 +748,10 @@ def main() -> None:
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
+        color_map={
+            "Green": "#6E7656",
+            "Four Seasons": "#4F5A3F",
+        },
     )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
