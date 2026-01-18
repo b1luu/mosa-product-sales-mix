@@ -695,6 +695,33 @@ def main() -> None:
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
     )
+    fresh_fruit_tea_base_last_month_output = generate_channel_mix_figure(
+        base_dir,
+        "last_month_fresh_fruit_tea_base_mix.csv",
+        "last_month_fresh_fruit_tea_base_mix.png",
+        "Fresh Fruit Tea Base Mix (Last Month)",
+        "tea_base",
+        "tea_base_sales_pct_of_total",
+        y_label="Tea Base",
+    )
+    fresh_fruit_tea_base_last_3_months_output = generate_channel_mix_figure(
+        base_dir,
+        "last_3_months_fresh_fruit_tea_base_mix.csv",
+        "last_3_months_fresh_fruit_tea_base_mix.png",
+        "Fresh Fruit Tea Base Mix (Last 3 Months)",
+        "tea_base",
+        "tea_base_sales_pct_of_total",
+        y_label="Tea Base",
+    )
+    fresh_fruit_tea_base_global_output = generate_channel_mix_figure(
+        base_dir,
+        "global_fresh_fruit_tea_base_mix.csv",
+        "global_fresh_fruit_tea_base_mix.png",
+        "Fresh Fruit Tea Base Mix (All Data)",
+        "tea_base",
+        "tea_base_sales_pct_of_total",
+        y_label="Tea Base",
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -767,6 +794,9 @@ def main() -> None:
     print(f"Saved figure: {milk_type_last_month_output}")
     print(f"Saved figure: {milk_type_last_3_months_output}")
     print(f"Saved figure: {milk_type_global_output}")
+    print(f"Saved figure: {fresh_fruit_tea_base_last_month_output}")
+    print(f"Saved figure: {fresh_fruit_tea_base_last_3_months_output}")
+    print(f"Saved figure: {fresh_fruit_tea_base_global_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")

@@ -400,6 +400,42 @@ def _compute_milk_type_mix(df: pd.DataFrame) -> pd.DataFrame:
     return mix
 
 
+def _compute_fresh_fruit_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute Green vs Four Seasons mix within Fresh Fruit Tea items."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["tea_base", "total_sales", "tea_base_sales_pct_of_total"]
+        )
+
+    if "tea_base" not in df.columns or "item_name" not in df.columns:
+        raise ValueError("Missing required column: tea_base or item_name")
+
+    fruit_mask = (
+        df["item_name"]
+        .astype(str)
+        .str.contains("fresh fruit tea", case=False, na=False)
+    )
+    fruit_df = df[fruit_mask & df["tea_base"].isin(["Green", "Four Seasons"])]
+    if fruit_df.empty:
+        return pd.DataFrame(
+            columns=["tea_base", "total_sales", "tea_base_sales_pct_of_total"]
+        )
+
+    mix = (
+        fruit_df.groupby("tea_base", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = mix["total_sales"].sum()
+    if total_sales == 0:
+        mix["tea_base_sales_pct_of_total"] = 0.0
+    else:
+        mix["tea_base_sales_pct_of_total"] = mix["total_sales"] / total_sales
+    mix = mix.sort_values("total_sales", ascending=False)
+    return mix
+
+
 def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute in-person subchannel mix for a given window."""
     if df.empty:
@@ -697,6 +733,7 @@ def main() -> None:
     last_month_in_person = _compute_in_person_mix(df_last_month)
     last_month_tea_base = _compute_tea_base_mix(df_last_month)
     last_month_milk_type = _compute_milk_type_mix(df_last_month)
+    last_month_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_month)
     last_month_hourly = _compute_hourly_sales(df_last_month)
     last_month_weekday_hourly, last_month_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_month
@@ -707,6 +744,7 @@ def main() -> None:
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
     last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
+    last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_3_months
@@ -717,6 +755,7 @@ def main() -> None:
     global_in_person = _compute_in_person_mix(df)
     global_tea_base = _compute_tea_base_mix(df)
     global_milk_type = _compute_milk_type_mix(df)
+    global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -781,6 +820,9 @@ def main() -> None:
     last_month_milk_type.to_csv(
         processed_dir / "last_month_milk_type_mix.csv", index=False
     )
+    last_month_fresh_fruit_tea_base.to_csv(
+        processed_dir / "last_month_fresh_fruit_tea_base_mix.csv", index=False
+    )
     last_3_in_person.to_csv(
         processed_dir / "last_3_months_in_person_mix.csv", index=False
     )
@@ -790,6 +832,9 @@ def main() -> None:
     last_3_milk_type.to_csv(
         processed_dir / "last_3_months_milk_type_mix.csv", index=False
     )
+    last_3_fresh_fruit_tea_base.to_csv(
+        processed_dir / "last_3_months_fresh_fruit_tea_base_mix.csv", index=False
+    )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
     )
@@ -798,6 +843,9 @@ def main() -> None:
     )
     global_milk_type.to_csv(
         processed_dir / "global_milk_type_mix.csv", index=False
+    )
+    global_fresh_fruit_tea_base.to_csv(
+        processed_dir / "global_fresh_fruit_tea_base_mix.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
