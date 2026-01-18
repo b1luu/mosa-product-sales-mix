@@ -25,6 +25,7 @@ These override the base rules when present in the item name:
 - Pistachio Mist -> Genmai Green
 - Brown Sugar Mist -> TGY Oolong
 - Grapefruit Bloom -> Four Seasons
+- Hot Spice Apple/Mango Tea Cider -> Black
 
 ## Fruit Tea Choice (Modifiers Applied)
 

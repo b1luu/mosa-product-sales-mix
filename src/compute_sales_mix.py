@@ -261,6 +261,10 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
         item_lower.str.contains("grapefruit bloom", na=False) & (tea_base == "Unknown"),
         "Four Seasons",
     )
+    tea_base = tea_base.mask(
+        item_lower.str.contains("hot spice", na=False) & (tea_base == "Unknown"),
+        "Black",
+    )
 
     genmai_mask = combined.str.contains("genmai|玄米", na=False)
     green_mask = combined.str.contains("green|綠茶|綠", na=False)
@@ -354,8 +358,16 @@ def _compute_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
     if "tea_base" not in df.columns:
         raise ValueError("Missing required column: tea_base")
 
+    base_df = df.copy()
+    if "category_name" in base_df.columns:
+        base_df = base_df[
+            ~base_df["category_name"]
+            .astype(str)
+            .str.contains("merchandise|周邊小物", case=False, na=False)
+        ]
+
     base_mix = (
-        df.groupby("tea_base", dropna=False)["item_gross_sales"]
+        base_df.groupby("tea_base", dropna=False)["item_gross_sales"]
         .sum()
         .reset_index()
         .rename(columns={"item_gross_sales": "total_sales"})
