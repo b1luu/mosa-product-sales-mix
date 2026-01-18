@@ -547,6 +547,28 @@ def main() -> None:
         processed_dir / "channel_summary.csv", index=False
     )
 
+    reports_dir = base_dir / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    channel_summary_md = channel_summary.copy()
+    channel_summary_md["total_sales"] = channel_summary_md["total_sales"].map(
+        lambda value: f"{value:,.2f}"
+    )
+    channel_summary_md["sales_pct_of_total"] = channel_summary_md[
+        "sales_pct_of_total"
+    ].map(lambda value: f"{value * 100:.1f}%")
+    try:
+        markdown = channel_summary_md.to_markdown(index=False)
+    except ImportError:
+        headers = channel_summary_md.columns.tolist()
+        rows = channel_summary_md.astype(str).values.tolist()
+        markdown_lines = [
+            "| " + " | ".join(headers) + " |",
+            "| " + " | ".join(["---"] * len(headers)) + " |",
+        ]
+        markdown_lines += ["| " + " | ".join(row) + " |" for row in rows]
+        markdown = "\n".join(markdown_lines)
+    (reports_dir / "channel_summary.md").write_text(markdown)
+
     _print_summary(last_month_category, last_month_product, "Last Month")
     _print_summary(global_category, global_product, "All Data")
 
