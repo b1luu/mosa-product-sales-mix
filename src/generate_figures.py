@@ -467,6 +467,59 @@ def generate_channel_mix_figure(
     return output_path
 
 
+def generate_tea_base_mix_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a horizontal bar chart for tea base mix."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed tea base mix is empty; no figure generated.")
+
+    df = df.sort_values("tea_base_sales_pct_of_total", ascending=True)
+    df["label"] = df["tea_base"].fillna("Unknown")
+
+    fig_height = max(3.5, min(8, 0.6 * len(df)))
+    fig, ax = plt.subplots(figsize=(8, fig_height))
+    bars = ax.barh(df["label"], df["tea_base_sales_pct_of_total"], color="#4B7B9B")
+    ax.set_title(title, pad=4)
+    ax.set_xlabel("Percent of Total Sales")
+    ax.set_ylabel("Tea Base")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([_format_pct(tick) for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    for label in ax.get_yticklabels():
+        label.set_fontweight("bold")
+
+    ax.bar_label(bars, labels=[_format_pct(v) for v in df["tea_base_sales_pct_of_total"]], padding=3)
+    max_pct = df["tea_base_sales_pct_of_total"].max()
+    ax.set_xlim(0, max_pct * 1.15)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 def generate_peak_hours_figure(
     base_dir: Path,
     processed_name: str,
@@ -614,6 +667,24 @@ def main() -> None:
         "in_person_channel",
         "in_person_sales_pct_of_total",
     )
+    tea_base_last_month_output = generate_tea_base_mix_figure(
+        base_dir,
+        "last_month_tea_base_mix.csv",
+        "last_month_tea_base_mix.png",
+        "Tea Base Mix (Last Month)",
+    )
+    tea_base_last_3_months_output = generate_tea_base_mix_figure(
+        base_dir,
+        "last_3_months_tea_base_mix.csv",
+        "last_3_months_tea_base_mix.png",
+        "Tea Base Mix (Last 3 Months)",
+    )
+    tea_base_global_output = generate_tea_base_mix_figure(
+        base_dir,
+        "global_tea_base_mix.csv",
+        "global_tea_base_mix.png",
+        "Tea Base Mix (All Data)",
+    )
     peak_hours_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_hourly_sales.csv",
@@ -665,6 +736,9 @@ def main() -> None:
     print(f"Saved figure: {channel_last_3_months_output}")
     print(f"Saved figure: {in_person_last_month_output}")
     print(f"Saved figure: {in_person_last_3_months_output}")
+    print(f"Saved figure: {tea_base_last_month_output}")
+    print(f"Saved figure: {tea_base_last_3_months_output}")
+    print(f"Saved figure: {tea_base_global_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
     print(f"Saved figure: {peak_hours_weekend_last_month_output}")

@@ -23,6 +23,7 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         "category_name": ["category_name", "category", "category name"],
         "item_name": ["item_name", "item", "item name"],
         "quantity": ["quantity", "qty"],
+        "modifiers_applied": ["modifiers applied", "modifier", "modifiers"],
         "item_gross_sales": [
             "item_gross_sales",
             "gross sales",
@@ -215,6 +216,75 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
+    """Assign tea base labels based on item names and modifiers."""
+    df = df.copy()
+    columns = {col.strip().lower(): col for col in df.columns}
+    item_col = columns.get("item_name")
+    modifiers_col = columns.get("modifiers_applied")
+    category_col = columns.get("category_name")
+
+    if not item_col:
+        df["tea_base"] = "Unknown"
+        return df
+
+    item_text = df[item_col].astype(str)
+    modifiers_text = (
+        df[modifiers_col].astype(str) if modifiers_col else pd.Series("", index=df.index)
+    )
+    category_text = (
+        df[category_col].astype(str) if category_col else pd.Series("", index=df.index)
+    )
+    combined = (item_text + " " + modifiers_text + " " + category_text).str.lower()
+
+    tea_base = pd.Series("Unknown", index=df.index)
+
+    # Matcha dominates any blend.
+    matcha_mask = combined.str.contains("matcha", na=False)
+    tea_base = tea_base.mask(matcha_mask, "Matcha")
+
+    # Explicit signature overrides.
+    item_lower = item_text.str.lower()
+    tea_base = tea_base.mask(
+        item_lower.str.contains("taiwanese retro", na=False) & (tea_base == "Unknown"),
+        "Black",
+    )
+
+    genmai_mask = combined.str.contains("genmai", na=False)
+    green_mask = combined.str.contains("green", na=False)
+    tea_base = tea_base.mask(
+        genmai_mask & green_mask & (tea_base == "Unknown"),
+        "Genmai Green",
+    )
+    tea_base = tea_base.mask(
+        genmai_mask & ~green_mask & (tea_base == "Unknown"),
+        "Genmai Green",
+    )
+
+    tea_base = tea_base.mask(
+        combined.str.contains("tgy|oolong", na=False) & (tea_base == "Unknown"),
+        "TGY Oolong",
+    )
+    tea_base = tea_base.mask(
+        combined.str.contains("buckwheat|barley", na=False) & (tea_base == "Unknown"),
+        "Buckwheat Barley",
+    )
+    tea_base = tea_base.mask(
+        combined.str.contains("four seasons|four season", na=False)
+        & (tea_base == "Unknown"),
+        "Four Seasons",
+    )
+    tea_base = tea_base.mask(
+        combined.str.contains(r"\bblack tea\b|\bblack\b", regex=True, na=False)
+        & (tea_base == "Unknown"),
+        "Black",
+    )
+    tea_base = tea_base.mask(green_mask & (tea_base == "Unknown"), "Green")
+
+    df["tea_base"] = tea_base
+    return df
+
+
 def _compute_channel_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute channel-level sales mix for a given window."""
     if df.empty:
@@ -237,6 +307,33 @@ def _compute_channel_mix(df: pd.DataFrame) -> pd.DataFrame:
         )
     channel_mix = channel_mix.sort_values("total_sales", ascending=False)
     return channel_mix
+
+
+def _compute_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute tea base sales mix for a given window."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["tea_base", "total_sales", "tea_base_sales_pct_of_total"]
+        )
+
+    if "tea_base" not in df.columns:
+        raise ValueError("Missing required column: tea_base")
+
+    base_mix = (
+        df.groupby("tea_base", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = base_mix["total_sales"].sum()
+    if total_sales == 0:
+        base_mix["tea_base_sales_pct_of_total"] = 0.0
+    else:
+        base_mix["tea_base_sales_pct_of_total"] = (
+            base_mix["total_sales"] / total_sales
+        )
+    base_mix = base_mix.sort_values("total_sales", ascending=False)
+    return base_mix
 
 
 def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
@@ -479,6 +576,7 @@ def main() -> None:
     df = _filter_refunds(df)
     df = _filter_non_product_items(df)
     df = _assign_channel(df)
+    df = _assign_tea_base(df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")
@@ -532,6 +630,7 @@ def main() -> None:
     last_month_product = _compute_product_mix(df_last_month)
     last_month_channel = _compute_channel_mix(df_last_month)
     last_month_in_person = _compute_in_person_mix(df_last_month)
+    last_month_tea_base = _compute_tea_base_mix(df_last_month)
     last_month_hourly = _compute_hourly_sales(df_last_month)
     last_month_weekday_hourly, last_month_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_month
@@ -540,6 +639,7 @@ def main() -> None:
     last_3_product = _compute_product_mix(df_last_3_months)
     last_3_channel = _compute_channel_mix(df_last_3_months)
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
+    last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_3_months
@@ -548,6 +648,7 @@ def main() -> None:
     global_product = _compute_product_mix(df)
     global_channel = _compute_channel_mix(df)
     global_in_person = _compute_in_person_mix(df)
+    global_tea_base = _compute_tea_base_mix(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -606,11 +707,20 @@ def main() -> None:
     last_month_in_person.to_csv(
         processed_dir / "last_month_in_person_mix.csv", index=False
     )
+    last_month_tea_base.to_csv(
+        processed_dir / "last_month_tea_base_mix.csv", index=False
+    )
     last_3_in_person.to_csv(
         processed_dir / "last_3_months_in_person_mix.csv", index=False
     )
+    last_3_tea_base.to_csv(
+        processed_dir / "last_3_months_tea_base_mix.csv", index=False
+    )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
+    )
+    global_tea_base.to_csv(
+        processed_dir / "global_tea_base_mix.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
