@@ -214,3 +214,4 @@ exports/
 *.parquet
 *.sqlite
 .DS_Store
+figures/
