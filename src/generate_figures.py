@@ -467,6 +467,55 @@ def generate_channel_mix_figure(
     return output_path
 
 
+def generate_peak_hours_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a bar chart for hourly sales share."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed hourly sales is empty; no figure generated.")
+
+    df = df.sort_values("hour")
+    df["hour_label"] = df["hour"].apply(lambda h: f"{int(h):02d}:00")
+
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    bars = ax.bar(df["hour_label"], df["sales_pct_of_total"], color="#2F6F5E")
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Hour of Day")
+    ax.set_ylabel("Percent of Total Sales")
+
+    ticks = ax.get_yticks()
+    ax.set_yticklabels([_format_pct(tick) for tick in ticks])
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+
+    ax.bar_label(bars, labels=[_format_pct(v) for v in df["sales_pct_of_total"]], padding=2, fontsize=8)
+    ax.set_ylim(0, df["sales_pct_of_total"].max() * 1.2)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -558,6 +607,12 @@ def main() -> None:
         "in_person_channel",
         "in_person_sales_pct_of_total",
     )
+    peak_hours_last_month_output = generate_peak_hours_figure(
+        base_dir,
+        "last_month_hourly_sales.csv",
+        "last_month_peak_hours.png",
+        "Peak Hours (Last Month)",
+    )
     top_products_global_output = generate_top_products_figure(
         base_dir,
         "global_product_mix.csv",
@@ -584,6 +639,7 @@ def main() -> None:
     print(f"Saved figure: {channel_last_3_months_output}")
     print(f"Saved figure: {in_person_last_month_output}")
     print(f"Saved figure: {in_person_last_3_months_output}")
+    print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {top_products_global_output}")
     print(f"Saved figure: {category_global_output}")
 

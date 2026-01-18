@@ -354,6 +354,30 @@ def _compute_product_mix(df: pd.DataFrame) -> pd.DataFrame:
     return product_mix
 
 
+def _compute_hourly_sales(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute hourly sales distribution for peak-hour analysis."""
+    if df.empty:
+        return pd.DataFrame(columns=["hour", "total_sales", "sales_pct_of_total"])
+
+    if "order_datetime" not in df.columns:
+        raise ValueError("Missing required column: order_datetime")
+
+    hourly = (
+        df.assign(hour=df["order_datetime"].dt.hour)
+        .groupby("hour", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = hourly["total_sales"].sum()
+    if total_sales == 0:
+        hourly["sales_pct_of_total"] = 0.0
+    else:
+        hourly["sales_pct_of_total"] = hourly["total_sales"] / total_sales
+    hourly = hourly.sort_values("hour")
+    return hourly
+
+
 # --- Reporting helpers ---
 def _print_summary(
     category_mix: pd.DataFrame,
@@ -476,14 +500,17 @@ def main() -> None:
     last_month_product = _compute_product_mix(df_last_month)
     last_month_channel = _compute_channel_mix(df_last_month)
     last_month_in_person = _compute_in_person_mix(df_last_month)
+    last_month_hourly = _compute_hourly_sales(df_last_month)
     last_3_category = _compute_category_mix(df_last_3_months)
     last_3_product = _compute_product_mix(df_last_3_months)
     last_3_channel = _compute_channel_mix(df_last_3_months)
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
+    last_3_hourly = _compute_hourly_sales(df_last_3_months)
     global_category = _compute_category_mix(df)
     global_product = _compute_product_mix(df)
     global_channel = _compute_channel_mix(df)
     global_in_person = _compute_in_person_mix(df)
+    global_hourly = _compute_hourly_sales(df)
 
     channel_summary = pd.concat(
         [
@@ -542,6 +569,15 @@ def main() -> None:
     )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
+    )
+    last_month_hourly.to_csv(
+        processed_dir / "last_month_hourly_sales.csv", index=False
+    )
+    last_3_hourly.to_csv(
+        processed_dir / "last_3_months_hourly_sales.csv", index=False
+    )
+    global_hourly.to_csv(
+        processed_dir / "global_hourly_sales.csv", index=False
     )
     channel_summary.to_csv(
         processed_dir / "channel_summary.csv", index=False
