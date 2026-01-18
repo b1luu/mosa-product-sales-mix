@@ -490,7 +490,13 @@ def generate_peak_hours_figure(
         raise ValueError("Processed hourly sales is empty; no figure generated.")
 
     df = df.sort_values("hour")
-    df["hour_label"] = df["hour"].apply(lambda h: f"{int(h):02d}:00")
+    def _format_hour_12h(hour: int) -> str:
+        hour_int = int(hour)
+        suffix = "AM" if hour_int < 12 else "PM"
+        hour_12 = hour_int % 12 or 12
+        return f"{hour_12}:00 {suffix}"
+
+    df["hour_label"] = df["hour"].apply(_format_hour_12h)
 
     fig, ax = plt.subplots(figsize=(10, 4.5))
     bars = ax.bar(df["hour_label"], df["sales_pct_of_total"], color="#2F6F5E")
@@ -613,6 +619,18 @@ def main() -> None:
         "last_month_peak_hours.png",
         "Peak Hours (Last Month)",
     )
+    peak_hours_weekday_last_month_output = generate_peak_hours_figure(
+        base_dir,
+        "last_month_weekday_hourly_sales.csv",
+        "last_month_peak_hours_weekday.png",
+        "Peak Hours (Weekdays, Last Month)",
+    )
+    peak_hours_weekend_last_month_output = generate_peak_hours_figure(
+        base_dir,
+        "last_month_weekend_hourly_sales.csv",
+        "last_month_peak_hours_weekend.png",
+        "Peak Hours (Weekends, Last Month)",
+    )
     top_products_global_output = generate_top_products_figure(
         base_dir,
         "global_product_mix.csv",
@@ -640,6 +658,8 @@ def main() -> None:
     print(f"Saved figure: {in_person_last_month_output}")
     print(f"Saved figure: {in_person_last_3_months_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
+    print(f"Saved figure: {peak_hours_weekday_last_month_output}")
+    print(f"Saved figure: {peak_hours_weekend_last_month_output}")
     print(f"Saved figure: {top_products_global_output}")
     print(f"Saved figure: {category_global_output}")
 

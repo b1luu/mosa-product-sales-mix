@@ -378,6 +378,21 @@ def _compute_hourly_sales(df: pd.DataFrame) -> pd.DataFrame:
     return hourly
 
 
+def _compute_weekday_weekend_hourly(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Compute hourly sales for weekday vs weekend business hours."""
+    if df.empty:
+        empty = pd.DataFrame(columns=["hour", "total_sales", "sales_pct_of_total"])
+        return empty, empty
+
+    weekday_df = df[df["order_datetime"].dt.dayofweek.isin([0, 1, 2, 3])]
+    weekend_df = df[df["order_datetime"].dt.dayofweek.isin([4, 5, 6])]
+
+    weekday_df = weekday_df[weekday_df["order_datetime"].dt.hour.between(12, 20)]
+    weekend_df = weekend_df[weekend_df["order_datetime"].dt.hour.between(11, 21)]
+
+    return _compute_hourly_sales(weekday_df), _compute_hourly_sales(weekend_df)
+
+
 # --- Reporting helpers ---
 def _print_summary(
     category_mix: pd.DataFrame,
@@ -501,16 +516,23 @@ def main() -> None:
     last_month_channel = _compute_channel_mix(df_last_month)
     last_month_in_person = _compute_in_person_mix(df_last_month)
     last_month_hourly = _compute_hourly_sales(df_last_month)
+    last_month_weekday_hourly, last_month_weekend_hourly = _compute_weekday_weekend_hourly(
+        df_last_month
+    )
     last_3_category = _compute_category_mix(df_last_3_months)
     last_3_product = _compute_product_mix(df_last_3_months)
     last_3_channel = _compute_channel_mix(df_last_3_months)
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
+    last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
+        df_last_3_months
+    )
     global_category = _compute_category_mix(df)
     global_product = _compute_product_mix(df)
     global_channel = _compute_channel_mix(df)
     global_in_person = _compute_in_person_mix(df)
     global_hourly = _compute_hourly_sales(df)
+    global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
 
     channel_summary = pd.concat(
         [
@@ -578,6 +600,24 @@ def main() -> None:
     )
     global_hourly.to_csv(
         processed_dir / "global_hourly_sales.csv", index=False
+    )
+    last_month_weekday_hourly.to_csv(
+        processed_dir / "last_month_weekday_hourly_sales.csv", index=False
+    )
+    last_month_weekend_hourly.to_csv(
+        processed_dir / "last_month_weekend_hourly_sales.csv", index=False
+    )
+    last_3_weekday_hourly.to_csv(
+        processed_dir / "last_3_months_weekday_hourly_sales.csv", index=False
+    )
+    last_3_weekend_hourly.to_csv(
+        processed_dir / "last_3_months_weekend_hourly_sales.csv", index=False
+    )
+    global_weekday_hourly.to_csv(
+        processed_dir / "global_weekday_hourly_sales.csv", index=False
+    )
+    global_weekend_hourly.to_csv(
+        processed_dir / "global_weekend_hourly_sales.csv", index=False
     )
     channel_summary.to_csv(
         processed_dir / "channel_summary.csv", index=False
