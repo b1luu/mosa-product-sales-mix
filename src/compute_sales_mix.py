@@ -450,6 +450,48 @@ def _compute_fresh_fruit_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
     return mix
 
 
+def _compute_top_item_by_tea_base(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute top-selling item within each tea base."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=[
+                "tea_base",
+                "item_name",
+                "total_sales",
+                "item_sales_pct_of_base",
+            ]
+        )
+
+    if "tea_base" not in df.columns or "item_name" not in df.columns:
+        raise ValueError("Missing required column: tea_base or item_name")
+
+    grouped = (
+        df.groupby(["tea_base", "item_name"], dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    base_totals = (
+        grouped.groupby("tea_base", dropna=False)["total_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"total_sales": "base_total_sales"})
+    )
+    grouped = grouped.merge(base_totals, on="tea_base", how="left")
+    grouped["item_sales_pct_of_base"] = grouped.apply(
+        lambda row: 0.0
+        if row["base_total_sales"] == 0
+        else row["total_sales"] / row["base_total_sales"],
+        axis=1,
+    )
+    grouped = grouped.sort_values(
+        ["tea_base", "total_sales"], ascending=[True, False]
+    )
+    top_items = grouped.groupby("tea_base", dropna=False).head(1)
+    top_items = top_items.drop(columns=["base_total_sales"])
+    return top_items
+
+
 def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute in-person subchannel mix for a given window."""
     if df.empty:
@@ -748,6 +790,7 @@ def main() -> None:
     last_month_tea_base = _compute_tea_base_mix(df_last_month)
     last_month_milk_type = _compute_milk_type_mix(df_last_month)
     last_month_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_month)
+    last_month_top_item_by_tea_base = _compute_top_item_by_tea_base(df_last_month)
     last_month_hourly = _compute_hourly_sales(df_last_month)
     last_month_weekday_hourly, last_month_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_month
@@ -759,6 +802,7 @@ def main() -> None:
     last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
+    last_3_top_item_by_tea_base = _compute_top_item_by_tea_base(df_last_3_months)
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_3_months
@@ -770,6 +814,7 @@ def main() -> None:
     global_tea_base = _compute_tea_base_mix(df)
     global_milk_type = _compute_milk_type_mix(df)
     global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)
+    global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -837,6 +882,9 @@ def main() -> None:
     last_month_fresh_fruit_tea_base.to_csv(
         processed_dir / "last_month_fresh_fruit_tea_base_mix.csv", index=False
     )
+    last_month_top_item_by_tea_base.to_csv(
+        processed_dir / "last_month_top_item_by_tea_base.csv", index=False
+    )
     last_3_in_person.to_csv(
         processed_dir / "last_3_months_in_person_mix.csv", index=False
     )
@@ -849,6 +897,9 @@ def main() -> None:
     last_3_fresh_fruit_tea_base.to_csv(
         processed_dir / "last_3_months_fresh_fruit_tea_base_mix.csv", index=False
     )
+    last_3_top_item_by_tea_base.to_csv(
+        processed_dir / "last_3_months_top_item_by_tea_base.csv", index=False
+    )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
     )
@@ -860,6 +911,9 @@ def main() -> None:
     )
     global_fresh_fruit_tea_base.to_csv(
         processed_dir / "global_fresh_fruit_tea_base_mix.csv", index=False
+    )
+    global_top_item_by_tea_base.to_csv(
+        processed_dir / "global_top_item_by_tea_base.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False

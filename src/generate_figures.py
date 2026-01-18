@@ -16,6 +16,11 @@ def _format_pct(value: float) -> str:
     return f"{value * 100:.1f}%"
 
 
+def _format_currency(value: float) -> str:
+    """Format currency values for axis labels."""
+    return f"${value:,.2f}"
+
+
 def _set_cjk_font() -> str | None:
     """Set a CJK-capable font if available; return the chosen font."""
     preferred_fonts = [
@@ -584,6 +589,65 @@ def generate_peak_hours_figure(
     return output_path
 
 
+def generate_top_item_by_tea_base_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a bar chart showing top item by tea base."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed top item by tea base is empty; no figure generated.")
+
+    df = df.sort_values("total_sales", ascending=True)
+    df["tea_base_label"] = df["tea_base"].fillna("Unknown")
+    df["item_label"] = df["item_name"].fillna("Unknown Item")
+    df["pct_label"] = df["item_sales_pct_of_base"].apply(_format_pct)
+
+    fig_height = max(4, min(10, 0.6 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["tea_base_label"], df["total_sales"], color="#4B7B9B")
+    ax.set_title(title, pad=4)
+    ax.set_xlabel("Total Sales")
+    ax.set_ylabel("Tea Base")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    max_sales = df["total_sales"].max()
+    for bar, item, pct in zip(bars, df["item_label"], df["pct_label"]):
+        ax.text(
+            bar.get_width() + max_sales * 0.02,
+            bar.get_y() + bar.get_height() / 2,
+            f"{item} ({pct})",
+            va="center",
+            fontsize=8,
+        )
+
+    ax.set_xlim(0, max_sales * 1.25)
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -763,6 +827,24 @@ def main() -> None:
             "Four Seasons": "#3E6B2C",
         },
     )
+    top_item_by_base_last_month_output = generate_top_item_by_tea_base_figure(
+        base_dir,
+        "last_month_top_item_by_tea_base.csv",
+        "last_month_top_item_by_tea_base.png",
+        "Top Item by Tea Base (Last Month)",
+    )
+    top_item_by_base_last_3_months_output = generate_top_item_by_tea_base_figure(
+        base_dir,
+        "last_3_months_top_item_by_tea_base.csv",
+        "last_3_months_top_item_by_tea_base.png",
+        "Top Item by Tea Base (Last 3 Months)",
+    )
+    top_item_by_base_global_output = generate_top_item_by_tea_base_figure(
+        base_dir,
+        "global_top_item_by_tea_base.csv",
+        "global_top_item_by_tea_base.png",
+        "Top Item by Tea Base (All Data)",
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -840,6 +922,9 @@ def main() -> None:
     print(f"Saved figure: {fresh_fruit_tea_base_last_month_output}")
     print(f"Saved figure: {fresh_fruit_tea_base_last_3_months_output}")
     print(f"Saved figure: {fresh_fruit_tea_base_global_output}")
+    print(f"Saved figure: {top_item_by_base_last_month_output}")
+    print(f"Saved figure: {top_item_by_base_last_3_months_output}")
+    print(f"Saved figure: {top_item_by_base_global_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")
