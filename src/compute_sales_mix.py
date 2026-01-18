@@ -269,6 +269,42 @@ def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
     return in_person_mix
 
 
+def _build_channel_summary(
+    channel_mix: pd.DataFrame,
+    in_person_mix: pd.DataFrame,
+    label: str,
+) -> pd.DataFrame:
+    """Build a single summary table for channel + in-person splits."""
+    channel_mix = channel_mix.copy()
+    channel_mix["scope"] = label
+    channel_mix["metric"] = "channel"
+    channel_mix = channel_mix.rename(columns={"channel_group": "segment"})
+    channel_mix = channel_mix[
+        ["scope", "metric", "segment", "total_sales", "channel_sales_pct_of_total"]
+    ].rename(columns={"channel_sales_pct_of_total": "sales_pct_of_total"})
+
+    in_person_mix = in_person_mix.copy()
+    if in_person_mix.empty:
+        in_person_mix = pd.DataFrame(
+            columns=["segment", "total_sales", "sales_pct_of_total"]
+        )
+    else:
+        in_person_mix = in_person_mix.rename(
+            columns={
+                "in_person_channel": "segment",
+                "in_person_sales_pct_of_total": "sales_pct_of_total",
+            }
+        )
+    in_person_mix["scope"] = label
+    in_person_mix["metric"] = "in_person"
+    in_person_mix = in_person_mix[
+        ["scope", "metric", "segment", "total_sales", "sales_pct_of_total"]
+    ]
+
+    summary = pd.concat([channel_mix, in_person_mix], ignore_index=True)
+    return summary
+
+
 def _compute_product_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute product-level sales mix for a given window."""
     if df.empty:
@@ -449,6 +485,15 @@ def main() -> None:
     global_channel = _compute_channel_mix(df)
     global_in_person = _compute_in_person_mix(df)
 
+    channel_summary = pd.concat(
+        [
+            _build_channel_summary(last_month_channel, last_month_in_person, "Last Month"),
+            _build_channel_summary(last_3_channel, last_3_in_person, "Last 3 Months"),
+            _build_channel_summary(global_channel, global_in_person, "All Data"),
+        ],
+        ignore_index=True,
+    )
+
     if last_month_category.empty:
         print("Warning: last month category mix is empty.")
     if last_month_product.empty:
@@ -497,6 +542,9 @@ def main() -> None:
     )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
+    )
+    channel_summary.to_csv(
+        processed_dir / "channel_summary.csv", index=False
     )
 
     _print_summary(last_month_category, last_month_product, "Last Month")
