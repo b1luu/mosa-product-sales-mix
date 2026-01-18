@@ -276,6 +276,89 @@ def generate_category_mix_figure(
     return output_path
 
 
+def generate_pareto_products_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a Pareto chart for product sales mix."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed product mix is empty; no figure generated.")
+
+    exclude_patterns = (
+        r"\btips?\b",
+        r"boba tea tote bag",
+        r"free drink",
+        r"custom amount",
+    )
+    df = df[
+        ~df["item_name"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+    ]
+
+    df = df.sort_values("product_sales_pct_of_total", ascending=False).reset_index(drop=True)
+    df["item_label"] = df["item_name"].fillna("Unknown Item")
+    df["category_label"] = df["category_name"].fillna("Uncategorized")
+    duplicate_items = df["item_label"].duplicated(keep=False)
+    df["label"] = df["item_label"]
+    df.loc[duplicate_items, "label"] = (
+        df.loc[duplicate_items, "item_label"]
+        + " ("
+        + df.loc[duplicate_items, "category_label"]
+        + ")"
+    )
+
+    df["cumulative_pct"] = df["product_sales_pct_of_total"].cumsum()
+    x = range(len(df))
+
+    fig_height = max(5, min(12, 0.22 * len(df)))
+    fig, ax1 = plt.subplots(figsize=(12, fig_height))
+    bars = ax1.bar(x, df["product_sales_pct_of_total"], color="#2A6F8F")
+    ax1.set_title(title, pad=4)
+    ax1.set_ylabel("Percent of Total Sales")
+    ax1.set_ylim(0, df["product_sales_pct_of_total"].max() * 1.15)
+    ax1.grid(axis="y", linestyle="--", alpha=0.3)
+
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(df["label"], rotation=75, ha="right", fontsize=8)
+
+    for label in ax1.get_xticklabels():
+        label.set_fontweight("bold")
+
+    ax1.set_yticklabels([_format_pct(tick) for tick in ax1.get_yticks()])
+
+    ax2 = ax1.twinx()
+    ax2.plot(x, df["cumulative_pct"], color="#D17A00", linewidth=2)
+    ax2.set_ylabel("Cumulative Percent of Total Sales")
+    ax2.set_ylim(0, 1.05)
+    ax2.set_yticklabels([_format_pct(tick) for tick in ax2.get_yticks()])
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
     last_month_output = generate_product_mix_figure(
@@ -316,12 +399,19 @@ def main() -> None:
         "last_3_months_category_mix.png",
         "Category Mix (Last 3 Months)",
     )
+    pareto_last_month_output = generate_pareto_products_figure(
+        base_dir,
+        "last_month_product_mix.csv",
+        "last_month_pareto.png",
+        "Pareto: Product Mix (Last Month)",
+    )
     print(f"Saved figure: {last_month_output}")
     print(f"Saved figure: {last_3_months_output}")
     print(f"Saved figure: {top_products_output}")
     print(f"Saved figure: {category_output}")
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {category_3_months_output}")
+    print(f"Saved figure: {pareto_last_month_output}")
 
 
 if __name__ == "__main__":
