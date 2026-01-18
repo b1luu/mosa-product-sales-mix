@@ -359,6 +359,58 @@ def generate_pareto_products_figure(
     return output_path
 
 
+def generate_category_share_donut(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a donut chart for category share."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed category mix is empty; no figure generated.")
+
+    df = df.sort_values("category_sales_pct_of_total", ascending=False)
+    labels = df["category_name"].fillna("Uncategorized")
+    values = df["category_sales_pct_of_total"]
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    wedges, texts, autotexts = ax.pie(
+        values,
+        labels=labels,
+        autopct=lambda pct: f"{pct:.1f}%",
+        startangle=90,
+        counterclock=False,
+        wedgeprops={"width": 0.4, "edgecolor": "white"},
+        textprops={"fontsize": 9},
+    )
+    ax.set_title(title, pad=8)
+    ax.axis("equal")
+
+    for text in texts:
+        text.set_fontweight("bold")
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
     last_month_output = generate_product_mix_figure(
@@ -405,6 +457,18 @@ def main() -> None:
         "last_month_pareto.png",
         "Pareto: Product Mix (Last Month)",
     )
+    donut_last_month_output = generate_category_share_donut(
+        base_dir,
+        "last_month_category_mix.csv",
+        "last_month_category_share.png",
+        "Category Share (Last Month)",
+    )
+    donut_last_3_months_output = generate_category_share_donut(
+        base_dir,
+        "last_3_months_category_mix.csv",
+        "last_3_months_category_share.png",
+        "Category Share (Last 3 Months)",
+    )
     print(f"Saved figure: {last_month_output}")
     print(f"Saved figure: {last_3_months_output}")
     print(f"Saved figure: {top_products_output}")
@@ -412,6 +476,8 @@ def main() -> None:
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {category_3_months_output}")
     print(f"Saved figure: {pareto_last_month_output}")
+    print(f"Saved figure: {donut_last_month_output}")
+    print(f"Saved figure: {donut_last_3_months_output}")
 
 
 if __name__ == "__main__":
