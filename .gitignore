@@ -215,3 +215,4 @@ exports/
 *.sqlite
 .DS_Store
 figures/
+figures/
