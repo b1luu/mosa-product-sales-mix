@@ -303,10 +303,25 @@ def main() -> None:
         "last_month_category_mix.png",
         "Category Mix (Last Month)",
     )
+    top_products_3_months_output = generate_top_products_figure(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_top_10_products.png",
+        "Top 10 Products (Last 3 Months)",
+        top_n=10,
+    )
+    category_3_months_output = generate_category_mix_figure(
+        base_dir,
+        "last_3_months_category_mix.csv",
+        "last_3_months_category_mix.png",
+        "Category Mix (Last 3 Months)",
+    )
     print(f"Saved figure: {last_month_output}")
     print(f"Saved figure: {last_3_months_output}")
     print(f"Saved figure: {top_products_output}")
     print(f"Saved figure: {category_output}")
+    print(f"Saved figure: {top_products_3_months_output}")
+    print(f"Saved figure: {category_3_months_output}")
 
 
 if __name__ == "__main__":
