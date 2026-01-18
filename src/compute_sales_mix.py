@@ -5,10 +5,10 @@ import pandas as pd
 
 try:
     from load_data import load_square_exports
-    from config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS
+    from config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS, FEATURED_ITEM_QUERY
 except ImportError:  # pragma: no cover - fallback for package-style imports
     from src.load_data import load_square_exports
-    from src.config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS
+    from src.config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS, FEATURED_ITEM_QUERY
 
 # --- Data normalization and cleaning helpers ---
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -378,6 +378,23 @@ def _compute_hourly_sales(df: pd.DataFrame) -> pd.DataFrame:
     return hourly
 
 
+def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
+    """Compute hourly sales for a specific item name query."""
+    if df.empty:
+        return pd.DataFrame(columns=["hour", "total_sales", "sales_pct_of_total"])
+
+    if "item_name" not in df.columns:
+        raise ValueError("Missing required column: item_name")
+
+    item_mask = (
+        df["item_name"]
+        .astype(str)
+        .str.contains(item_query, case=False, na=False)
+    )
+    item_df = df[item_mask]
+    return _compute_hourly_sales(item_df)
+
+
 def _compute_weekday_weekend_hourly(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Compute hourly sales for weekday vs weekend business hours."""
     if df.empty:
@@ -533,6 +550,9 @@ def main() -> None:
     global_in_person = _compute_in_person_mix(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
+    last_month_featured_item_hourly = _compute_item_hourly_sales(
+        df_last_month, FEATURED_ITEM_QUERY
+    )
 
     channel_summary = pd.concat(
         [
@@ -618,6 +638,9 @@ def main() -> None:
     )
     global_weekend_hourly.to_csv(
         processed_dir / "global_weekend_hourly_sales.csv", index=False
+    )
+    last_month_featured_item_hourly.to_csv(
+        processed_dir / "last_month_featured_item_hourly_sales.csv", index=False
     )
     channel_summary.to_csv(
         processed_dir / "channel_summary.csv", index=False

@@ -10,3 +10,6 @@ EXCLUDE_ITEM_PATTERNS = (
     r"free drink",
     r"custom amount",
 )
+
+# Item name snippet for the "fun" hourly chart.
+FEATURED_ITEM_QUERY = "TGY Special"

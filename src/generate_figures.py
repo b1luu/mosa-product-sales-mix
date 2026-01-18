@@ -472,6 +472,7 @@ def generate_peak_hours_figure(
     processed_name: str,
     output_name: str,
     title: str,
+    y_label: str = "Percent of Total Sales",
 ) -> Path:
     """Create a bar chart for hourly sales share."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -502,7 +503,7 @@ def generate_peak_hours_figure(
     bars = ax.bar(df["hour_label"], df["sales_pct_of_total"], color="#2F6F5E")
     ax.set_title(title, pad=6)
     ax.set_xlabel("Hour of Day")
-    ax.set_ylabel("Percent of Total Sales")
+    ax.set_ylabel(y_label)
 
     ticks = ax.get_yticks()
     ax.set_yticklabels([_format_pct(tick) for tick in ticks])
@@ -631,6 +632,13 @@ def main() -> None:
         "last_month_peak_hours_weekend.png",
         "Peak Hours (Weekends, Last Month)",
     )
+    featured_item_last_month_output = generate_peak_hours_figure(
+        base_dir,
+        "last_month_featured_item_hourly_sales.csv",
+        "last_month_tgy_special_by_hour.png",
+        "TGY Special by Hour (Last Month)",
+        y_label="Percent of Item Sales",
+    )
     top_products_global_output = generate_top_products_figure(
         base_dir,
         "global_product_mix.csv",
@@ -660,6 +668,7 @@ def main() -> None:
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
     print(f"Saved figure: {peak_hours_weekend_last_month_output}")
+    print(f"Saved figure: {featured_item_last_month_output}")
     print(f"Saved figure: {top_products_global_output}")
     print(f"Saved figure: {category_global_output}")
 
