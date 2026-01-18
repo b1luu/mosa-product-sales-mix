@@ -5,11 +5,10 @@ import pandas as pd
 
 try:
     from load_data import load_square_exports
+    from config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS
 except ImportError:  # pragma: no cover - fallback for package-style imports
     from src.load_data import load_square_exports
-
-# Refund notes that should be treated as valid sales.
-KEEP_REFUND_PATTERNS = (r"panda", r"hungry panda", r"\bhp\b")
+    from src.config import EXCLUDE_ITEM_PATTERNS, KEEP_REFUND_PATTERNS
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names to expected schema."""
@@ -132,18 +131,12 @@ def _filter_non_product_items(df: pd.DataFrame) -> pd.DataFrame:
     if "item_name" not in df.columns:
         return df
 
-    exclude_patterns = (
-        r"\btips?\b",
-        r"boba tea tote bag",
-        r"free drink",
-        r"custom amount",
-    )
     mask = (
         df["item_name"]
         .astype(str)
         .str.strip()
         .str.lower()
-        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
     )
     return df[~mask]
 
@@ -417,6 +410,14 @@ def main() -> None:
         (df["order_datetime"] >= last_3_start)
         & (df["order_datetime"] <= last_month_end)
     ]
+
+    if not df_last_3_months.empty:
+        min_3_months = df_last_3_months["order_datetime"].min()
+        if min_3_months >= last_month_start:
+            print(
+                "Warning: last 3 months window has no data before last month; "
+                "results may match last month."
+            )
 
     if df_last_month.empty:
         print("Warning: last month window has no rows.")

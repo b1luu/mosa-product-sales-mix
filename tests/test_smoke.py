@@ -288,6 +288,28 @@ class TestSmoke(unittest.TestCase):
         )
         self.assertEqual(result["in_person_channel"].tolist(), ["", "", "Kiosk", "Counter"])
 
+    def test_assign_channel_missing_channel_column(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Notes": ["HP 9999", ""],
+                "item_gross_sales": [1, 1],
+            }
+        )
+        result = compute_sales_mix._assign_channel(df)
+        self.assertEqual(result["channel_group"].tolist(), ["Hungry Panda", "In Person"])
+        self.assertEqual(result["in_person_channel"].tolist(), ["", "Counter"])
+
+    def test_assign_channel_missing_notes_column(self) -> None:
+        df = pd.DataFrame(
+            {
+                "Channel": ["Kiosk", "DoorDash"],
+                "item_gross_sales": [1, 1],
+            }
+        )
+        result = compute_sales_mix._assign_channel(df)
+        self.assertEqual(result["channel_group"].tolist(), ["In Person", "DoorDash"])
+        self.assertEqual(result["in_person_channel"].tolist(), ["Kiosk", ""])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

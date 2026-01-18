@@ -7,6 +7,8 @@ from matplotlib import font_manager
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from config import EXCLUDE_ITEM_PATTERNS
+
 
 def _format_pct(value: float) -> str:
     """Format a decimal percent for axis labels."""
@@ -59,18 +61,12 @@ def generate_product_mix_figure(
     if df.empty:
         raise ValueError("Processed product mix is empty; no figure generated.")
 
-    exclude_patterns = (
-        r"\btips?\b",
-        r"boba tea tote bag",
-        r"free drink",
-        r"custom amount",
-    )
     df = df[
         ~df["item_name"]
         .astype(str)
         .str.strip()
         .str.lower()
-        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
     ]
 
     df = df.sort_values("product_sales_pct_of_total", ascending=True)
@@ -152,18 +148,12 @@ def generate_top_products_figure(
     if df.empty:
         raise ValueError("Processed product mix is empty; no figure generated.")
 
-    exclude_patterns = (
-        r"\btips?\b",
-        r"boba tea tote bag",
-        r"free drink",
-        r"custom amount",
-    )
     df = df[
         ~df["item_name"]
         .astype(str)
         .str.strip()
         .str.lower()
-        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
     ]
 
     df = df.sort_values("product_sales_pct_of_total", ascending=False).head(top_n)
@@ -298,18 +288,12 @@ def generate_pareto_products_figure(
     if df.empty:
         raise ValueError("Processed product mix is empty; no figure generated.")
 
-    exclude_patterns = (
-        r"\btips?\b",
-        r"boba tea tote bag",
-        r"free drink",
-        r"custom amount",
-    )
     df = df[
         ~df["item_name"]
         .astype(str)
         .str.strip()
         .str.lower()
-        .str.contains("|".join(exclude_patterns), regex=True, na=False)
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
     ]
 
     df = df.sort_values("product_sales_pct_of_total", ascending=False).reset_index(drop=True)
@@ -567,6 +551,19 @@ def main() -> None:
         "in_person_channel",
         "in_person_sales_pct_of_total",
     )
+    top_products_global_output = generate_top_products_figure(
+        base_dir,
+        "global_product_mix.csv",
+        "global_top_10_products.png",
+        "Top 10 Products (All Data)",
+        top_n=10,
+    )
+    category_global_output = generate_category_mix_figure(
+        base_dir,
+        "global_category_mix.csv",
+        "global_category_mix.png",
+        "Category Mix (All Data)",
+    )
     print(f"Saved figure: {last_month_output}")
     print(f"Saved figure: {last_3_months_output}")
     print(f"Saved figure: {top_products_output}")
@@ -580,6 +577,8 @@ def main() -> None:
     print(f"Saved figure: {channel_last_3_months_output}")
     print(f"Saved figure: {in_person_last_month_output}")
     print(f"Saved figure: {in_person_last_3_months_output}")
+    print(f"Saved figure: {top_products_global_output}")
+    print(f"Saved figure: {category_global_output}")
 
 
 if __name__ == "__main__":

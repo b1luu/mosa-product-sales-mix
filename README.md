@@ -39,6 +39,16 @@ If those fields are missing after normalization, the script will exit with a cle
 python3 src/compute_sales_mix.py
 ```
 
+## Pipeline Order
+1) Generate processed CSVs:
+```bash
+python3 src/compute_sales_mix.py
+```
+2) Generate figures:
+```bash
+python3 src/generate_figures.py
+```
+
 ## Current Outputs
 - `data/processed/last_month_category_mix.csv`
 - `data/processed/last_month_product_mix.csv`
@@ -63,6 +73,13 @@ python3 src/compute_sales_mix.py
 - A global (all data) sales mix is also generated.
 - Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed. Valid Hungry Panda refunds are treated as positive sales.
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
+
+## Channel Rules
+- Hungry Panda: `Notes` contains `Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, or `Pandaa`.
+- DoorDash / Uber Eats / Square Online: inferred from `Channel` values (case-insensitive match).
+- In Person: default when no delivery or HP rule matches.
+- In-person split: `Kiosk` when `Channel` contains `Kiosk`, otherwise `Counter`.
+- Other: `Channel` exists but does not match any known delivery or in-person label.
 
 ## Troubleshooting
 - Missing required columns: confirm the export is the detailed line-item report and includes Date, Time, Category, Item, Qty, Gross Sales, and Transaction ID (or equivalent).
