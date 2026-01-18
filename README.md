@@ -125,3 +125,4 @@ python3 src/generate_figures.py
 ## Figures
 - Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, peak hours, and a Pareto chart.
 - Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, top item by tea base, peak hours, and a Pareto chart.
+- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, top item by tea base, peak hours, daily sales anomalies, and a Pareto chart.

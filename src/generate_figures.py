@@ -648,6 +648,45 @@ def generate_top_item_by_tea_base_figure(
     return output_path
 
 
+def generate_daily_sales_anomalies_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a scatter plot of daily sales z-scores."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed daily sales z-score is empty; no figure generated.")
+
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
+
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ax.scatter(df["date"], df["z_score"], color="#6E7656", s=30, alpha=0.8)
+    ax.axhline(0, color="#9CA3AF", linewidth=1)
+    ax.axhline(2.5, color="#D17A00", linestyle="--", linewidth=1)
+    ax.axhline(-2.5, color="#D17A00", linestyle="--", linewidth=1)
+
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Z-Score (Daily Sales vs Weekday Baseline)")
+    ax.grid(axis="y", linestyle="--", alpha=0.25)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -845,6 +884,12 @@ def main() -> None:
         "global_top_item_by_tea_base.png",
         "Top Item by Tea Base (All Data)",
     )
+    daily_sales_anomaly_output = generate_daily_sales_anomalies_figure(
+        base_dir,
+        "global_daily_sales_zscore.csv",
+        "global_daily_sales_anomalies.png",
+        "Daily Sales Anomalies (Z-Score vs Weekday Baseline)",
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -925,6 +970,7 @@ def main() -> None:
     print(f"Saved figure: {top_item_by_base_last_month_output}")
     print(f"Saved figure: {top_item_by_base_last_3_months_output}")
     print(f"Saved figure: {top_item_by_base_global_output}")
+    print(f"Saved figure: {daily_sales_anomaly_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")
