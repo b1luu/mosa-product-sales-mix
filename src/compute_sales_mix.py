@@ -240,7 +240,7 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
     tea_base = pd.Series("Unknown", index=df.index)
 
     # Matcha dominates any blend.
-    matcha_mask = combined.str.contains("matcha", na=False)
+    matcha_mask = combined.str.contains("matcha|抹茶", na=False)
     tea_base = tea_base.mask(matcha_mask, "Matcha")
 
     # Explicit signature overrides.
@@ -262,8 +262,8 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
         "Four Seasons",
     )
 
-    genmai_mask = combined.str.contains("genmai", na=False)
-    green_mask = combined.str.contains("green", na=False)
+    genmai_mask = combined.str.contains("genmai|玄米", na=False)
+    green_mask = combined.str.contains("green|綠茶|綠", na=False)
     tea_base = tea_base.mask(
         genmai_mask & green_mask & (tea_base == "Unknown"),
         "Genmai Green",
@@ -274,21 +274,23 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     tea_base = tea_base.mask(
-        combined.str.contains("tgy|oolong", na=False) & (tea_base == "Unknown"),
+        combined.str.contains("tgy|oolong|tie guan yin|鐵觀音", na=False)
+        & (tea_base == "Unknown"),
         "TGY Oolong",
     )
     tea_base = tea_base.mask(
-        combined.str.contains("buckwheat|barley", na=False) & (tea_base == "Unknown"),
+        combined.str.contains("buckwheat|barley|蕎麥", na=False)
+        & (tea_base == "Unknown"),
         "Buckwheat Barley",
     )
     tea_base = tea_base.mask(
-        combined.str.contains(r"\bblack tea\b|\bblack\b", regex=True, na=False)
+        combined.str.contains(r"\bblack tea\b|\bblack\b|紅茶|熟成", regex=True, na=False)
         & (tea_base == "Unknown"),
         "Black",
     )
     tea_base = tea_base.mask(green_mask & (tea_base == "Unknown"), "Green")
     tea_base = tea_base.mask(
-        combined.str.contains("four seasons|four season", na=False)
+        combined.str.contains("four seasons|four season|四季", na=False)
         & (tea_base == "Unknown"),
         "Four Seasons",
     )

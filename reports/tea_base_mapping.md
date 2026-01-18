@@ -4,13 +4,13 @@ This mapping powers the tea base mix chart and helps audit how bases are assigne
 
 ## Base Rules (Priority Order)
 
-1. Matcha: Any item/modifier/category containing `matcha`.
-2. Genmai Green: Any item/modifier/category containing `genmai` (with or without `green`).
-3. TGY Oolong: Any item/modifier/category containing `tgy` or `oolong` (includes osmanthus honey).
-4. Buckwheat Barley: Any item/modifier/category containing `buckwheat` or `barley`.
-5. Black: Any item/modifier/category containing `black tea` or `black`.
-6. Green: Any item/modifier/category containing `green`.
-7. Four Seasons: Any item/modifier/category containing `four seasons` (only applies when Green is not present).
+1. Matcha: Any item/modifier/category containing `matcha` or `抹茶`.
+2. Genmai Green: Any item/modifier/category containing `genmai` or `玄米` (with or without `green`).
+3. TGY Oolong: Any item/modifier/category containing `tgy`, `oolong`, `tie guan yin`, or `鐵觀音` (includes osmanthus honey).
+4. Buckwheat Barley: Any item/modifier/category containing `buckwheat`, `barley`, or `蕎麥`.
+5. Black: Any item/modifier/category containing `black tea`, `black`, `紅茶`, or `熟成`.
+6. Green: Any item/modifier/category containing `green`, `綠茶`, or `綠`.
+7. Four Seasons: Any item/modifier/category containing `four seasons` or `四季` (only applies when Green is not present).
 8. Unknown: When no base keywords are found.
 
 Notes:

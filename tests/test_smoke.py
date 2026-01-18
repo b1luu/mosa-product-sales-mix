@@ -211,45 +211,53 @@ class TestSmoke(unittest.TestCase):
                     "Fresh Fruit Tea",
                     "Genmai Green Milk Tea",
                     "TGY Oolong Tea with Osmanthus Honey",
-                    "Matcha Latte",
-                ],
-                "modifiers_applied": [
-                    "",
-                    "",
-                    "",
+                "Matcha Latte",
+                "Chestnut Forest 栗子抹茶森林",
+                "Tie Guan Yin Milk Tea 鐵觀音奶茶",
+            ],
+            "modifiers_applied": [
+                "",
+                "",
+                "",
                     "",
                     "Green Tea, 50% Ice",
                     "Four Seasons Tea, 50% Ice",
                     "Green Tea, 50% Sugar",
-                    "",
-                    "",
-                ],
-                "category_name": [
-                    "Mosa Signature",
-                    "Mosa Signature",
-                    "Mosa Signature",
+                "",
+                "",
+                "",
+                "",
+            ],
+            "category_name": [
+                "Mosa Signature",
+                "Mosa Signature",
+                "Mosa Signature",
                     "Mosa Signature",
                     "Mosa Signature",
                     "Mosa Signature",
                     "Milk Tea",
                     "Fresh Brewed Tea",
-                    "Matcha Series",
-                ],
-                "order_datetime": pd.to_datetime(
-                    [
-                        "2025-01-01 10:00",
-                        "2025-01-01 10:05",
+                "Matcha Series",
+                "Matcha Series",
+                "Milk Tea",
+            ],
+            "order_datetime": pd.to_datetime(
+                [
+                    "2025-01-01 10:00",
+                    "2025-01-01 10:05",
                         "2025-01-01 10:10",
                         "2025-01-01 10:15",
                         "2025-01-01 10:20",
                         "2025-01-01 10:25",
                         "2025-01-01 10:30",
-                        "2025-01-01 10:35",
-                        "2025-01-01 10:40",
-                    ]
-                ),
-            }
-        )
+                    "2025-01-01 10:35",
+                    "2025-01-01 10:40",
+                    "2025-01-01 10:45",
+                    "2025-01-01 10:50",
+                ]
+            ),
+        }
+    )
         result = compute_sales_mix._assign_tea_base(df)
         bases = result["tea_base"].tolist()
         self.assertEqual(bases[0], "Black")
@@ -261,6 +269,8 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(bases[6], "Genmai Green")
         self.assertEqual(bases[7], "TGY Oolong")
         self.assertEqual(bases[8], "Matcha")
+        self.assertEqual(bases[9], "Matcha")
+        self.assertEqual(bases[10], "TGY Oolong")
 
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
