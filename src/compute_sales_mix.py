@@ -631,6 +631,25 @@ def _compute_hourly_sales(df: pd.DataFrame) -> pd.DataFrame:
     return hourly
 
 
+def _compute_daily_sales(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute daily total sales."""
+    if df.empty:
+        return pd.DataFrame(columns=["date", "total_sales"])
+
+    if "order_datetime" not in df.columns:
+        raise ValueError("Missing required column: order_datetime")
+
+    daily = (
+        df.assign(date=df["order_datetime"].dt.date)
+        .groupby("date", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    daily = daily.sort_values("date")
+    return daily
+
+
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
     """Compute hourly sales for a specific item name query."""
     if df.empty:
@@ -815,6 +834,7 @@ def main() -> None:
     global_milk_type = _compute_milk_type_mix(df)
     global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)
     global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
+    global_daily_sales = _compute_daily_sales(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -914,6 +934,9 @@ def main() -> None:
     )
     global_top_item_by_tea_base.to_csv(
         processed_dir / "global_top_item_by_tea_base.csv", index=False
+    )
+    global_daily_sales.to_csv(
+        processed_dir / "global_daily_sales.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
