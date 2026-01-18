@@ -100,6 +100,7 @@ python3 src/generate_figures.py
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
 - Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
+- Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 
 ## Channel Rules
 - Hungry Panda: `Notes` contains `Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, or `Pandaa`.

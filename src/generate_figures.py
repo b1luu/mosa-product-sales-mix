@@ -527,6 +527,7 @@ def generate_peak_hours_figure(
     output_name: str,
     title: str,
     y_label: str = "Percent of Total Sales",
+    bar_color: str = "#2F6F5E",
 ) -> Path:
     """Create a bar chart for hourly sales share."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -554,7 +555,7 @@ def generate_peak_hours_figure(
     df["hour_label"] = df["hour"].apply(_format_hour_12h)
 
     fig, ax = plt.subplots(figsize=(10, 4.5))
-    bars = ax.bar(df["hour_label"], df["sales_pct_of_total"], color="#2F6F5E")
+    bars = ax.bar(df["hour_label"], df["sales_pct_of_total"], color=bar_color)
     ax.set_title(title, pad=6)
     ax.set_xlabel("Hour of Day")
     ax.set_ylabel(y_label)
@@ -751,12 +752,14 @@ def main() -> None:
         "last_month_weekday_hourly_sales.csv",
         "last_month_peak_hours_weekday.png",
         "Peak Hours (Weekdays, Last Month)",
+        bar_color="#6E7656",
     )
     peak_hours_weekend_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_weekend_hourly_sales.csv",
         "last_month_peak_hours_weekend.png",
         "Peak Hours (Weekends, Last Month)",
+        bar_color="#4F5A3F",
     )
     featured_item_last_month_output = generate_peak_hours_figure(
         base_dir,
