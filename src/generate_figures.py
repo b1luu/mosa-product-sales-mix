@@ -666,6 +666,11 @@ def main() -> None:
         "In-Person Mix (Last Month)",
         "in_person_channel",
         "in_person_sales_pct_of_total",
+        y_label="In-Person Channel",
+        color_map={
+            "Kiosk": "#6E7656",
+            "Counter": "#4F5A3F",
+        },
     )
     in_person_last_3_months_output = generate_channel_mix_figure(
         base_dir,
@@ -674,6 +679,11 @@ def main() -> None:
         "In-Person Mix (Last 3 Months)",
         "in_person_channel",
         "in_person_sales_pct_of_total",
+        y_label="In-Person Channel",
+        color_map={
+            "Kiosk": "#6E7656",
+            "Counter": "#4F5A3F",
+        },
     )
     milk_type_last_month_output = generate_channel_mix_figure(
         base_dir,
