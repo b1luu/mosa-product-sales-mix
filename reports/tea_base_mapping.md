@@ -10,7 +10,7 @@ This mapping powers the tea base mix chart and helps audit how bases are assigne
 4. Buckwheat Barley: Any item/modifier/category containing `buckwheat` or `barley`.
 5. Black: Any item/modifier/category containing `black tea` or `black`.
 6. Green: Any item/modifier/category containing `green`.
-7. Four Seasons: Any item/modifier/category containing `four seasons`.
+7. Four Seasons: Any item/modifier/category containing `four seasons` (only applies when Green is not present).
 8. Unknown: When no base keywords are found.
 
 Notes:
