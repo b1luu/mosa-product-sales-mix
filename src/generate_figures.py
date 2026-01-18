@@ -419,6 +419,7 @@ def generate_channel_mix_figure(
     title: str,
     label_column: str,
     pct_column: str,
+    y_label: str = "Channel",
 ) -> Path:
     """Create a horizontal bar chart for channel mix files."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -444,7 +445,7 @@ def generate_channel_mix_figure(
     bars = ax.barh(df["label"], df[pct_column], color="#4C7EA8")
     ax.set_title(title, pad=4)
     ax.set_xlabel("Percent of Total Sales")
-    ax.set_ylabel("Channel")
+    ax.set_ylabel(y_label)
 
     ticks = ax.get_xticks()
     ax.set_xticklabels([_format_pct(tick) for tick in ticks])
@@ -667,6 +668,33 @@ def main() -> None:
         "in_person_channel",
         "in_person_sales_pct_of_total",
     )
+    milk_type_last_month_output = generate_channel_mix_figure(
+        base_dir,
+        "last_month_milk_type_mix.csv",
+        "last_month_milk_type_mix.png",
+        "Milk Tea vs Au Lait (Last Month)",
+        "milk_type",
+        "milk_type_sales_pct_of_total",
+        y_label="Drink Type",
+    )
+    milk_type_last_3_months_output = generate_channel_mix_figure(
+        base_dir,
+        "last_3_months_milk_type_mix.csv",
+        "last_3_months_milk_type_mix.png",
+        "Milk Tea vs Au Lait (Last 3 Months)",
+        "milk_type",
+        "milk_type_sales_pct_of_total",
+        y_label="Drink Type",
+    )
+    milk_type_global_output = generate_channel_mix_figure(
+        base_dir,
+        "global_milk_type_mix.csv",
+        "global_milk_type_mix.png",
+        "Milk Tea vs Au Lait (All Data)",
+        "milk_type",
+        "milk_type_sales_pct_of_total",
+        y_label="Drink Type",
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -736,6 +764,9 @@ def main() -> None:
     print(f"Saved figure: {channel_last_3_months_output}")
     print(f"Saved figure: {in_person_last_month_output}")
     print(f"Saved figure: {in_person_last_3_months_output}")
+    print(f"Saved figure: {milk_type_last_month_output}")
+    print(f"Saved figure: {milk_type_last_3_months_output}")
+    print(f"Saved figure: {milk_type_global_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")

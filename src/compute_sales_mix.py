@@ -297,6 +297,27 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _assign_milk_type(df: pd.DataFrame) -> pd.DataFrame:
+    """Assign milk type labels (Milk Tea vs Au Lait) from category names."""
+    df = df.copy()
+    columns = {col.strip().lower(): col for col in df.columns}
+    category_col = columns.get("category_name")
+    if not category_col:
+        df["milk_type"] = "Unknown"
+        return df
+
+    category_text = df[category_col].astype(str).str.lower()
+    milk_type = pd.Series("Unknown", index=df.index)
+    milk_type = milk_type.mask(
+        category_text.str.contains("milk tea", na=False), "Milk Tea"
+    )
+    milk_type = milk_type.mask(
+        category_text.str.contains("au lait", na=False), "Au Lait"
+    )
+    df["milk_type"] = milk_type
+    return df
+
+
 def _compute_channel_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute channel-level sales mix for a given window."""
     if df.empty:
@@ -346,6 +367,37 @@ def _compute_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
         )
     base_mix = base_mix.sort_values("total_sales", ascending=False)
     return base_mix
+
+
+def _compute_milk_type_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute Milk Tea vs Au Lait sales mix for a given window."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["milk_type", "total_sales", "milk_type_sales_pct_of_total"]
+        )
+
+    if "milk_type" not in df.columns:
+        raise ValueError("Missing required column: milk_type")
+
+    milk_df = df[df["milk_type"].isin(["Milk Tea", "Au Lait"])]
+    if milk_df.empty:
+        return pd.DataFrame(
+            columns=["milk_type", "total_sales", "milk_type_sales_pct_of_total"]
+        )
+
+    mix = (
+        milk_df.groupby("milk_type", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    total_sales = mix["total_sales"].sum()
+    if total_sales == 0:
+        mix["milk_type_sales_pct_of_total"] = 0.0
+    else:
+        mix["milk_type_sales_pct_of_total"] = mix["total_sales"] / total_sales
+    mix = mix.sort_values("total_sales", ascending=False)
+    return mix
 
 
 def _compute_in_person_mix(df: pd.DataFrame) -> pd.DataFrame:
@@ -589,6 +641,7 @@ def main() -> None:
     df = _filter_non_product_items(df)
     df = _assign_channel(df)
     df = _assign_tea_base(df)
+    df = _assign_milk_type(df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")
@@ -643,6 +696,7 @@ def main() -> None:
     last_month_channel = _compute_channel_mix(df_last_month)
     last_month_in_person = _compute_in_person_mix(df_last_month)
     last_month_tea_base = _compute_tea_base_mix(df_last_month)
+    last_month_milk_type = _compute_milk_type_mix(df_last_month)
     last_month_hourly = _compute_hourly_sales(df_last_month)
     last_month_weekday_hourly, last_month_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_month
@@ -652,6 +706,7 @@ def main() -> None:
     last_3_channel = _compute_channel_mix(df_last_3_months)
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
     last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
+    last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_3_months
@@ -661,6 +716,7 @@ def main() -> None:
     global_channel = _compute_channel_mix(df)
     global_in_person = _compute_in_person_mix(df)
     global_tea_base = _compute_tea_base_mix(df)
+    global_milk_type = _compute_milk_type_mix(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -722,17 +778,26 @@ def main() -> None:
     last_month_tea_base.to_csv(
         processed_dir / "last_month_tea_base_mix.csv", index=False
     )
+    last_month_milk_type.to_csv(
+        processed_dir / "last_month_milk_type_mix.csv", index=False
+    )
     last_3_in_person.to_csv(
         processed_dir / "last_3_months_in_person_mix.csv", index=False
     )
     last_3_tea_base.to_csv(
         processed_dir / "last_3_months_tea_base_mix.csv", index=False
     )
+    last_3_milk_type.to_csv(
+        processed_dir / "last_3_months_milk_type_mix.csv", index=False
+    )
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
     )
     global_tea_base.to_csv(
         processed_dir / "global_tea_base_mix.csv", index=False
+    )
+    global_milk_type.to_csv(
+        processed_dir / "global_milk_type_mix.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
