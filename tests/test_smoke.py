@@ -473,6 +473,20 @@ class TestSmoke(unittest.TestCase):
         self.assertTrue(result.empty)
         self.assertEqual(list(result.columns), ["sugar_pct", "count", "share"])
 
+    def test_daily_anomalies_empty_input(self) -> None:
+        df = pd.DataFrame(
+            columns=[
+                "date",
+                "total_sales",
+                "weekday",
+                "baseline_mean",
+                "baseline_std",
+                "z_score",
+            ]
+        )
+        result = compute_sales_mix._compute_daily_anomalies_by_threshold(df)
+        self.assertTrue(result.empty)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
