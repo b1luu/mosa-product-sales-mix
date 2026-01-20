@@ -87,6 +87,7 @@ python3 src/generate_figures.py
 - `data/processed/last_3_months_top_item_by_tea_base.csv`
 - `data/processed/global_top_item_by_tea_base.csv`
 - `data/processed/last_3_months_order_count.csv`
+- `data/processed/global_item_pair_stats.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
@@ -96,6 +97,7 @@ python3 src/generate_figures.py
 - Fresh fruit tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
 - Top item by tea base files: `tea_base`, `item_name`, `total_sales`, `item_sales_pct_of_base`
 - Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
+- Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`
 - Percentages are decimals in the range 0-1 (multiply by 100 for percent).
 
 ## Notes

@@ -726,6 +726,65 @@ def _compute_modifier_pct_mix(df: pd.DataFrame, label: str) -> pd.DataFrame:
     return mix
 
 
+def _compute_item_pair_stats(df: pd.DataFrame, min_support: float = 0.01) -> pd.DataFrame:
+    """Compute item pair co-purchase stats (support, confidence, lift)."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["item_a", "item_b", "count", "support", "confidence", "lift"]
+        )
+
+    required_cols = {"order_id", "item_name"}
+    missing = required_cols - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing required columns: {sorted(missing)}")
+
+    basket = (
+        df.groupby("order_id", dropna=False)["item_name"]
+        .apply(lambda items: sorted(set(map(str, items))))
+        .reset_index()
+    )
+    basket = basket[basket["item_name"].map(len) >= 2]
+    total_orders = len(basket)
+    if total_orders == 0:
+        return pd.DataFrame(
+            columns=["item_a", "item_b", "count", "support", "confidence", "lift"]
+        )
+
+    item_counts = {}
+    pair_counts = {}
+    for items in basket["item_name"]:
+        for item in items:
+            item_counts[item] = item_counts.get(item, 0) + 1
+        for i in range(len(items)):
+            for j in range(i + 1, len(items)):
+                pair = (items[i], items[j])
+                pair_counts[pair] = pair_counts.get(pair, 0) + 1
+
+    rows = []
+    for (item_a, item_b), count in pair_counts.items():
+        support = count / total_orders
+        if support < min_support:
+            continue
+        conf = count / item_counts[item_a] if item_counts[item_a] else 0.0
+        lift = conf / (item_counts[item_b] / total_orders) if item_counts[item_b] else 0.0
+        rows.append(
+            {
+                "item_a": item_a,
+                "item_b": item_b,
+                "count": count,
+                "support": support,
+                "confidence": conf,
+                "lift": lift,
+            }
+        )
+
+    pairs = pd.DataFrame(rows)
+    if pairs.empty:
+        return pairs
+    pairs = pairs.sort_values(["lift", "support"], ascending=False)
+    return pairs
+
+
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
     """Compute hourly sales for a specific item name query."""
     if df.empty:
@@ -918,6 +977,7 @@ def main() -> None:
     )
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
     global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
+    global_item_pair_stats = _compute_item_pair_stats(df)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -1035,6 +1095,9 @@ def main() -> None:
     )
     global_ice_pct.to_csv(
         processed_dir / "global_ice_pct_mix.csv", index=False
+    )
+    global_item_pair_stats.to_csv(
+        processed_dir / "global_item_pair_stats.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
