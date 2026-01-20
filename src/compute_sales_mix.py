@@ -977,7 +977,7 @@ def main() -> None:
     )
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
     global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
-    global_item_pair_stats = _compute_item_pair_stats(df)
+    last_3_item_pair_stats = _compute_item_pair_stats(df_last_3_months)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -1096,8 +1096,8 @@ def main() -> None:
     global_ice_pct.to_csv(
         processed_dir / "global_ice_pct_mix.csv", index=False
     )
-    global_item_pair_stats.to_csv(
-        processed_dir / "global_item_pair_stats.csv", index=False
+    last_3_item_pair_stats.to_csv(
+        processed_dir / "last_3_months_item_pair_stats.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False

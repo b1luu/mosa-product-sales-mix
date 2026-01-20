@@ -87,7 +87,7 @@ python3 src/generate_figures.py
 - `data/processed/last_3_months_top_item_by_tea_base.csv`
 - `data/processed/global_top_item_by_tea_base.csv`
 - `data/processed/last_3_months_order_count.csv`
-- `data/processed/global_item_pair_stats.csv`
+- `data/processed/last_3_months_item_pair_stats.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
