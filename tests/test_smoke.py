@@ -497,6 +497,18 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._compute_item_pair_stats(df, min_support=0.0)
         self.assertTrue(result.empty)
 
+    def test_daily_sales_robust_zscore(self) -> None:
+        daily = pd.DataFrame(
+            {
+                "date": ["2025-01-01", "2025-01-02", "2025-01-03"],
+                "total_sales": [10.0, 10.0, 20.0],
+            }
+        )
+        result = compute_sales_mix._compute_daily_sales_robust_zscore(daily)
+        self.assertEqual(result["median"].iloc[0], 10.0)
+        self.assertEqual(result["mad"].iloc[0], 0.0)
+        self.assertTrue((result["z_score"] == 0).all())
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
