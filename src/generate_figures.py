@@ -653,7 +653,7 @@ def generate_daily_sales_anomalies_figure(
     processed_name: str,
     output_name: str,
     title: str,
-    threshold: float = 2.5,
+    threshold: float = 2.25,
 ) -> Path:
     """Create a scatter plot of daily sales z-scores."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -966,7 +966,7 @@ def main() -> None:
         "global_daily_sales_zscore.csv",
         "global_daily_sales_anomalies.png",
         "Daily Sales Anomalies (Z-Score vs Weekday Baseline)",
-        threshold=2.5,
+        threshold=2.25,
     )
     sugar_pct_output = generate_pct_mix_figure(
         base_dir,

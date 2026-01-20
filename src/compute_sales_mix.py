@@ -677,7 +677,7 @@ def _compute_daily_sales_zscore(daily_sales: pd.DataFrame) -> pd.DataFrame:
 
 
 def _compute_daily_anomalies_by_threshold(
-    daily_sales_zscore: pd.DataFrame, threshold: float = 2.5
+    daily_sales_zscore: pd.DataFrame, threshold: float = 2.25
 ) -> pd.DataFrame:
     """Select daily anomalies where abs(z-score) exceeds threshold."""
     if daily_sales_zscore.empty:
