@@ -98,6 +98,7 @@ python3 src/generate_figures.py
 - Top item by tea base files: `tea_base`, `item_name`, `total_sales`, `item_sales_pct_of_base`
 - Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
 - Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`
+- Rolling z-score file: `date`, `total_sales`, `rolling_mean`, `rolling_std`, `z_score`
 - Percentages are decimals in the range 0-1 (multiply by 100 for percent).
 
 ## Notes
