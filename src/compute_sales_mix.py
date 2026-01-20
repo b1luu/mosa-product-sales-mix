@@ -676,20 +676,19 @@ def _compute_daily_sales_zscore(daily_sales: pd.DataFrame) -> pd.DataFrame:
     return daily
 
 
-def _compute_top_daily_anomalies(
-    daily_sales_zscore: pd.DataFrame, top_n: int = 10
+def _compute_daily_anomalies_by_threshold(
+    daily_sales_zscore: pd.DataFrame, threshold: float = 2.5
 ) -> pd.DataFrame:
-    """Select top daily anomalies by absolute z-score."""
+    """Select daily anomalies where abs(z-score) exceeds threshold."""
     if daily_sales_zscore.empty:
         return pd.DataFrame(
             columns=["date", "total_sales", "weekday", "baseline_mean", "baseline_std", "z_score"]
         )
 
-    ranked = daily_sales_zscore.copy()
-    ranked["abs_z_score"] = ranked["z_score"].abs()
-    ranked = ranked.sort_values("abs_z_score", ascending=False).head(top_n)
-    ranked = ranked.drop(columns=["abs_z_score"])
-    return ranked
+    anomalies = daily_sales_zscore.copy()
+    anomalies = anomalies[anomalies["z_score"].abs() >= threshold]
+    anomalies = anomalies.sort_values("z_score", ascending=False)
+    return anomalies
 
 
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
@@ -878,7 +877,7 @@ def main() -> None:
     global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
     global_daily_sales = _compute_daily_sales(df)
     global_daily_sales_zscore = _compute_daily_sales_zscore(global_daily_sales)
-    global_daily_sales_anomalies = _compute_top_daily_anomalies(
+    global_daily_sales_anomalies = _compute_daily_anomalies_by_threshold(
         global_daily_sales_zscore
     )
     global_hourly = _compute_hourly_sales(df)

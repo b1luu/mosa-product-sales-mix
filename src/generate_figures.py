@@ -653,6 +653,7 @@ def generate_daily_sales_anomalies_figure(
     processed_name: str,
     output_name: str,
     title: str,
+    threshold: float = 2.5,
 ) -> Path:
     """Create a scatter plot of daily sales z-scores."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -669,8 +670,21 @@ def generate_daily_sales_anomalies_figure(
     fig, ax = plt.subplots(figsize=(11, 4.5))
     ax.scatter(df["date"], df["z_score"], color="#6E7656", s=30, alpha=0.8)
     ax.axhline(0, color="#9CA3AF", linewidth=1)
-    ax.axhline(2.5, color="#D17A00", linestyle="--", linewidth=1)
-    ax.axhline(-2.5, color="#D17A00", linestyle="--", linewidth=1)
+    ax.axhline(threshold, color="#D17A00", linestyle="--", linewidth=1)
+    ax.axhline(-threshold, color="#D17A00", linestyle="--", linewidth=1)
+
+    anomaly_mask = df["z_score"].abs() >= threshold
+    if anomaly_mask.any():
+        for _, row in df[anomaly_mask].iterrows():
+            ax.annotate(
+                row["date"].strftime("%Y-%m-%d"),
+                (row["date"], row["z_score"]),
+                textcoords="offset points",
+                xytext=(0, 6),
+                ha="center",
+                fontsize=8,
+                color="#D17A00",
+            )
 
     ax.set_title(title, pad=6)
     ax.set_xlabel("Date")
@@ -889,6 +903,7 @@ def main() -> None:
         "global_daily_sales_zscore.csv",
         "global_daily_sales_anomalies.png",
         "Daily Sales Anomalies (Z-Score vs Weekday Baseline)",
+        threshold=2.5,
     )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
