@@ -117,6 +117,7 @@ python3 src/generate_figures.py
 - Anomaly threshold guidance: 2.25 is intentionally strict and highlights only major deviations. Use the top-10 by |z| list for a broader review set when you want more investigate-worthy days.
 - Rolling z-score notes: rolling z-score compares each day to the prior 14-day window (mean and std) to highlight short-term deviations after smoothing recent trends.
 - Robust z-score notes: uses median and MAD (median absolute deviation) instead of mean/std, which is less sensitive to extreme outliers.
+- See `reports/summary.md` for an executive summary and limitations.
 
 ## Future Improvements
 - Co-purchase analysis: limit to top-N items, add lift thresholds, and segment by channel to improve signal quality.
