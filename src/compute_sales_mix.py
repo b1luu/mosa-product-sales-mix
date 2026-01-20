@@ -712,6 +712,26 @@ def _compute_daily_sales_rolling_zscore(
     return daily
 
 
+def _compute_daily_sales_robust_zscore(
+    daily_sales: pd.DataFrame,
+) -> pd.DataFrame:
+    """Compute robust z-scores using median and MAD."""
+    if daily_sales.empty:
+        return pd.DataFrame(columns=["date", "total_sales", "median", "mad", "z_score"])
+
+    daily = daily_sales.copy()
+    daily["date"] = pd.to_datetime(daily["date"])
+    median = daily["total_sales"].median()
+    mad = (daily["total_sales"] - median).abs().median()
+    daily["median"] = median
+    daily["mad"] = mad
+    daily["z_score"] = daily.apply(
+        lambda row: 0.0 if mad == 0 or pd.isna(mad) else (row["total_sales"] - median) / mad,
+        axis=1,
+    )
+    return daily
+
+
 def _extract_pct(modifiers: pd.Series, label: str) -> pd.Series:
     """Extract percent value for a modifier label (e.g., 'Sugar' or 'Ice')."""
     pattern = rf"(\d+)%\s*{label}"
@@ -997,6 +1017,7 @@ def main() -> None:
         global_daily_sales_zscore
     )
     global_daily_sales_rolling = _compute_daily_sales_rolling_zscore(global_daily_sales)
+    global_daily_sales_robust = _compute_daily_sales_robust_zscore(global_daily_sales)
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
     global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
     last_3_item_pair_stats = _compute_item_pair_stats(df_last_3_months)
@@ -1114,6 +1135,9 @@ def main() -> None:
     )
     global_daily_sales_rolling.to_csv(
         processed_dir / "global_daily_sales_rolling_zscore.csv", index=False
+    )
+    global_daily_sales_robust.to_csv(
+        processed_dir / "global_daily_sales_robust_zscore.csv", index=False
     )
     global_sugar_pct.to_csv(
         processed_dir / "global_sugar_pct_mix.csv", index=False
