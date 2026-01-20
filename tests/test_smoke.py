@@ -169,7 +169,15 @@ class TestSmoke(unittest.TestCase):
     def test_filter_refunds_keeps_hp_variants(self) -> None:
         df = pd.DataFrame(
             {
-                "Event Type": ["Refund", "Refund", "Refund", "Refund", "Refund"],
+                "Event Type": [
+                    "Refund",
+                    "Refund",
+                    "Refund",
+                    "Refund",
+                    "Refund",
+                    "Refund",
+                    "Refund",
+                ],
                 "Notes": [
                     "Hp",
                     "HP",
@@ -334,6 +342,17 @@ class TestSmoke(unittest.TestCase):
             daily, threshold=2.5
         )
         self.assertEqual(result["date"].tolist(), ["2025-01-02"])
+
+    def test_daily_sales_zscore_handles_zero_std(self) -> None:
+        daily = pd.DataFrame(
+            {
+                "date": ["2025-01-06", "2025-01-13"],
+                "total_sales": [100.0, 100.0],
+            }
+        )
+        result = compute_sales_mix._compute_daily_sales_zscore(daily)
+        self.assertTrue((result["baseline_std"] == 0).all())
+        self.assertTrue((result["z_score"] == 0).all())
 
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
