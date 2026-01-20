@@ -757,6 +757,43 @@ def generate_pct_mix_figure(
     return output_path
 
 
+def generate_rolling_zscore_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a line plot of rolling z-scores for daily sales."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed rolling z-score is empty; no figure generated.")
+
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
+
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    ax.plot(df["date"], df["z_score"], color="#4F5A3F", linewidth=2)
+    ax.axhline(0, color="#9CA3AF", linewidth=1)
+
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Rolling Z-Score (14-day)")
+    ax.grid(axis="y", linestyle="--", alpha=0.25)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -968,6 +1005,12 @@ def main() -> None:
         "Daily Sales Anomalies (Z-Score vs Weekday Baseline)",
         threshold=2.25,
     )
+    rolling_zscore_output = generate_rolling_zscore_figure(
+        base_dir,
+        "global_daily_sales_rolling_zscore.csv",
+        "global_daily_sales_rolling_zscore.png",
+        "Daily Sales Rolling Z-Score (14-day window)",
+    )
     sugar_pct_output = generate_pct_mix_figure(
         base_dir,
         "global_sugar_pct_mix.csv",
@@ -1067,6 +1110,7 @@ def main() -> None:
     print(f"Saved figure: {top_item_by_base_last_3_months_output}")
     print(f"Saved figure: {top_item_by_base_global_output}")
     print(f"Saved figure: {daily_sales_anomaly_output}")
+    print(f"Saved figure: {rolling_zscore_output}")
     print(f"Saved figure: {sugar_pct_output}")
     print(f"Saved figure: {ice_pct_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
