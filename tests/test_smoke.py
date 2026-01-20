@@ -300,6 +300,41 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(sugar, ["50", "100", "0", "25", "0", pd.NA, pd.NA])
         self.assertEqual(ice, ["25", "0", "75", "100", pd.NA, "0", pd.NA])
 
+    def test_daily_sales_zscore_by_weekday(self) -> None:
+        daily = pd.DataFrame(
+            {
+                "date": [
+                    "2025-01-06",
+                    "2025-01-13",
+                    "2025-01-20",
+                    "2025-01-27",
+                ],
+                "total_sales": [100.0, 110.0, 120.0, 130.0],
+            }
+        )
+        result = compute_sales_mix._compute_daily_sales_zscore(daily)
+        self.assertTrue((result["weekday"] == "Monday").all())
+        self.assertAlmostEqual(result["baseline_mean"].iloc[0], 115.0)
+        self.assertGreater(result["baseline_std"].iloc[0], 0)
+        self.assertLess(result["z_score"].iloc[0], 0)
+        self.assertGreater(result["z_score"].iloc[-1], 0)
+
+    def test_daily_anomalies_threshold_filter(self) -> None:
+        daily = pd.DataFrame(
+            {
+                "date": ["2025-01-01", "2025-01-02"],
+                "total_sales": [100.0, 200.0],
+                "weekday": ["Wednesday", "Thursday"],
+                "baseline_mean": [100.0, 100.0],
+                "baseline_std": [10.0, 10.0],
+                "z_score": [0.0, 10.0],
+            }
+        )
+        result = compute_sales_mix._compute_daily_anomalies_by_threshold(
+            daily, threshold=2.5
+        )
+        self.assertEqual(result["date"].tolist(), ["2025-01-02"])
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
