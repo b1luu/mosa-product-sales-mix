@@ -763,7 +763,7 @@ def generate_rolling_zscore_figure(
     output_name: str,
     title: str,
 ) -> Path:
-    """Create a line plot of rolling z-scores for daily sales."""
+    """Create a scatter plot of rolling z-scores for daily sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
     if not processed_path.exists():
         raise FileNotFoundError(f"Missing processed file: {processed_path}")
@@ -776,7 +776,7 @@ def generate_rolling_zscore_figure(
     df = df.sort_values("date")
 
     fig, ax = plt.subplots(figsize=(11, 4.5))
-    ax.plot(df["date"], df["z_score"], color="#4F5A3F", linewidth=2)
+    ax.scatter(df["date"], df["z_score"], color="#4F5A3F", s=30, alpha=0.8)
     ax.axhline(0, color="#9CA3AF", linewidth=1)
 
     ax.set_title(title, pad=6)
@@ -800,7 +800,7 @@ def generate_robust_zscore_figure(
     output_name: str,
     title: str,
 ) -> Path:
-    """Create a line plot of robust z-scores for daily sales."""
+    """Create a scatter plot of robust z-scores for daily sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
     if not processed_path.exists():
         raise FileNotFoundError(f"Missing processed file: {processed_path}")
@@ -813,7 +813,7 @@ def generate_robust_zscore_figure(
     df = df.sort_values("date")
 
     fig, ax = plt.subplots(figsize=(11, 4.5))
-    ax.plot(df["date"], df["z_score"], color="#6E7656", linewidth=2)
+    ax.scatter(df["date"], df["z_score"], color="#6E7656", s=30, alpha=0.8)
     ax.axhline(0, color="#9CA3AF", linewidth=1)
 
     ax.set_title(title, pad=6)
