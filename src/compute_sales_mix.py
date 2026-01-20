@@ -790,7 +790,12 @@ def _compute_modifier_pct_mix(df: pd.DataFrame, label: str) -> pd.DataFrame:
     return mix
 
 
-def _compute_item_pair_stats(df: pd.DataFrame, min_support: float = 0.01) -> pd.DataFrame:
+def _compute_item_pair_stats(
+    df: pd.DataFrame,
+    min_support: float = 0.01,
+    min_lift: float = 1.5,
+    max_basket_size: int = 6,
+) -> pd.DataFrame:
     """Compute item pair co-purchase stats (support, confidence, lift)."""
     if df.empty:
         return pd.DataFrame(
@@ -802,35 +807,54 @@ def _compute_item_pair_stats(df: pd.DataFrame, min_support: float = 0.01) -> pd.
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
 
+    order_sales = df.groupby("order_id", dropna=False)["item_gross_sales"].sum().to_dict()
     basket = (
         df.groupby("order_id", dropna=False)["item_name"]
         .apply(lambda items: sorted(set(map(str, items))))
         .reset_index()
     )
     basket = basket[basket["item_name"].map(len) >= 2]
+    basket = basket[basket["item_name"].map(len) <= max_basket_size]
     total_orders = len(basket)
     if total_orders == 0:
         return pd.DataFrame(
-            columns=["item_a", "item_b", "count", "support", "confidence", "lift"]
+            columns=[
+                "item_a",
+                "item_b",
+                "count",
+                "support",
+                "confidence",
+                "lift",
+                "pair_sales",
+                "pair_sales_pct_of_total",
+                "total_transactions",
+            ]
         )
 
     item_counts = {}
     pair_counts = {}
-    for items in basket["item_name"]:
+    pair_sales = {}
+    for order_id, items in basket.itertuples(index=False):
         for item in items:
             item_counts[item] = item_counts.get(item, 0) + 1
         for i in range(len(items)):
             for j in range(i + 1, len(items)):
                 pair = (items[i], items[j])
                 pair_counts[pair] = pair_counts.get(pair, 0) + 1
+                pair_sales[pair] = pair_sales.get(pair, 0.0) + order_sales.get(order_id, 0.0)
 
     rows = []
+    total_sales = df["item_gross_sales"].sum()
     for (item_a, item_b), count in pair_counts.items():
         support = count / total_orders
         if support < min_support:
             continue
         conf = count / item_counts[item_a] if item_counts[item_a] else 0.0
         lift = conf / (item_counts[item_b] / total_orders) if item_counts[item_b] else 0.0
+        if lift < min_lift:
+            continue
+        sales = pair_sales.get((item_a, item_b), 0.0)
+        sales_pct = sales / total_sales if total_sales else 0.0
         rows.append(
             {
                 "item_a": item_a,
@@ -839,6 +863,9 @@ def _compute_item_pair_stats(df: pd.DataFrame, min_support: float = 0.01) -> pd.
                 "support": support,
                 "confidence": conf,
                 "lift": lift,
+                "pair_sales": sales,
+                "pair_sales_pct_of_total": sales_pct,
+                "total_transactions": total_orders,
             }
         )
 
@@ -1047,6 +1074,7 @@ def main() -> None:
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
     global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
     last_3_item_pair_stats = _compute_item_pair_stats(df_last_3_months)
+    last_3_item_pair_top10 = last_3_item_pair_stats.head(10)
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -1176,6 +1204,9 @@ def main() -> None:
     )
     last_3_item_pair_stats.to_csv(
         processed_dir / "last_3_months_item_pair_stats.csv", index=False
+    )
+    last_3_item_pair_top10.to_csv(
+        processed_dir / "last_3_months_item_pair_top10.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False

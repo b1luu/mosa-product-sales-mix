@@ -97,7 +97,7 @@ python3 src/generate_figures.py
 - Fresh fruit tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
 - Top item by tea base files: `tea_base`, `item_name`, `total_sales`, `item_sales_pct_of_base`
 - Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
-- Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`
+- Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`, `pair_sales`, `pair_sales_pct_of_total`, `total_transactions`
 - Rolling z-score file: `date`, `total_sales`, `rolling_mean`, `rolling_std`, `z_score`
 - Robust z-score file: `date`, `total_sales`, `median`, `mad`, `z_score`
 - Top anomaly days file: `date`, `total_sales`, `weekday`, `baseline_mean`, `baseline_std`, `z_score`, `abs_z_score`
@@ -111,7 +111,7 @@ python3 src/generate_figures.py
 - Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
-- Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, counts item pairs, and outputs support, confidence, and lift for the last 3 months. Pairs below 1% support are filtered out to reduce noise.
+- Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, filters to baskets with 2-6 items, and outputs support, confidence, lift, and pair-level sales for the last 3 months. Pairs below 1% support or lift < 1.5 are filtered out to reduce noise.
 - Anomaly detection notes: z-score is the number of standard deviations from the weekday baseline mean; a normal distribution rule of thumb is ~68% within 1σ, ~95% within 2σ, ~99.7% within 3σ (approximate). For the current 92-day sample, anomaly counts were 2.5 -> 2 days, 2.25 -> 2 days, 2.0 -> 3 days, 1.75 -> 6 days.
 - Anomaly threshold guidance: 2.25 is intentionally strict and highlights only major deviations. Use the top-10 by |z| list for a broader review set when you want more investigate-worthy days.
 - Rolling z-score notes: rolling z-score compares each day to the prior 14-day window (mean and std) to highlight short-term deviations after smoothing recent trends.
