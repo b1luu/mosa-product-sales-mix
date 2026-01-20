@@ -487,6 +487,16 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._compute_daily_anomalies_by_threshold(df)
         self.assertTrue(result.empty)
 
+    def test_item_pair_stats_ignores_single_item_orders(self) -> None:
+        df = pd.DataFrame(
+            {
+                "order_id": ["o1", "o2", "o3"],
+                "item_name": ["A", "B", "C"],
+            }
+        )
+        result = compute_sales_mix._compute_item_pair_stats(df, min_support=0.0)
+        self.assertTrue(result.empty)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
