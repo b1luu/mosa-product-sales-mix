@@ -691,6 +691,41 @@ def _compute_daily_anomalies_by_threshold(
     return anomalies
 
 
+def _extract_pct(modifiers: pd.Series, label: str) -> pd.Series:
+    """Extract percent value for a modifier label (e.g., 'Sugar' or 'Ice')."""
+    pattern = rf"(\d+)%\s*{label}"
+    pct = modifiers.str.extract(pattern, expand=False)
+    pct = pct.fillna("")
+    no_label = modifiers.str.contains(rf"\bNo\s*{label}\b", case=False, na=False)
+    pct = pct.mask(no_label, "0")
+    return pct.replace("", pd.NA)
+
+
+def _compute_modifier_pct_mix(df: pd.DataFrame, label: str) -> pd.DataFrame:
+    """Compute percent mix for a modifier label."""
+    if df.empty:
+        return pd.DataFrame(columns=[f"{label.lower()}_pct", "count", "share"])
+
+    if "modifiers_applied" not in df.columns:
+        raise ValueError("Missing required column: modifiers_applied")
+
+    modifiers = df["modifiers_applied"].astype(str)
+    pct = _extract_pct(modifiers, label)
+    pct = pct.dropna()
+    if pct.empty:
+        return pd.DataFrame(columns=[f"{label.lower()}_pct", "count", "share"])
+
+    mix = (
+        pct.value_counts()
+        .rename_axis(f"{label.lower()}_pct")
+        .reset_index(name="count")
+    )
+    mix["share"] = mix["count"] / mix["count"].sum()
+    mix[f"{label.lower()}_pct"] = mix[f"{label.lower()}_pct"].astype(int)
+    mix = mix.sort_values(f"{label.lower()}_pct")
+    return mix
+
+
 def _compute_item_hourly_sales(df: pd.DataFrame, item_query: str) -> pd.DataFrame:
     """Compute hourly sales for a specific item name query."""
     if df.empty:
@@ -880,6 +915,8 @@ def main() -> None:
     global_daily_sales_anomalies = _compute_daily_anomalies_by_threshold(
         global_daily_sales_zscore
     )
+    global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
+    global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
     global_hourly = _compute_hourly_sales(df)
     global_weekday_hourly, global_weekend_hourly = _compute_weekday_weekend_hourly(df)
     last_month_featured_item_hourly = _compute_item_hourly_sales(
@@ -988,6 +1025,12 @@ def main() -> None:
     )
     global_daily_sales_anomalies.to_csv(
         processed_dir / "global_daily_sales_anomalies.csv", index=False
+    )
+    global_sugar_pct.to_csv(
+        processed_dir / "global_sugar_pct_mix.csv", index=False
+    )
+    global_ice_pct.to_csv(
+        processed_dir / "global_ice_pct_mix.csv", index=False
     )
     last_month_hourly.to_csv(
         processed_dir / "last_month_hourly_sales.csv", index=False
