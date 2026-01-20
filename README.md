@@ -108,6 +108,7 @@ python3 src/generate_figures.py
 - Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
+- Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, counts item pairs, and outputs support, confidence, and lift for the last 3 months. Pairs below 1% support are filtered out to reduce noise.
 
 ## Channel Rules
 - Hungry Panda: `Notes` contains `Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, or `Pandaa`.
@@ -126,6 +127,4 @@ python3 src/generate_figures.py
 - Run smoke tests only: `python3 -m unittest tests.test_smoke`
 
 ## Figures
-- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, peak hours, and a Pareto chart.
-- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, top item by tea base, peak hours, and a Pareto chart.
 - Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, top item by tea base, peak hours, daily sales anomalies, and a Pareto chart.
