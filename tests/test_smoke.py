@@ -283,6 +283,23 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(bases[9], "Matcha")
         self.assertEqual(bases[10], "TGY Oolong")
 
+    def test_extract_pct_parses_sugar_and_ice(self) -> None:
+        modifiers = pd.Series(
+            [
+                "25% Ice, 50% Sugar",
+                "No Ice, 100% Sugar",
+                "Green Tea, 75% Ice, No Sugar",
+                "100% Ice, 25% Sugar, Boba",
+                "No Sugar",
+                "No Ice",
+                "Green Tea",
+            ]
+        )
+        sugar = compute_sales_mix._extract_pct(modifiers, "Sugar").tolist()
+        ice = compute_sales_mix._extract_pct(modifiers, "Ice").tolist()
+        self.assertEqual(sugar, ["50", "100", "0", "25", "0", pd.NA, pd.NA])
+        self.assertEqual(ice, ["25", "0", "75", "100", pd.NA, "0", pd.NA])
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
