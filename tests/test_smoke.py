@@ -463,6 +463,16 @@ class TestSmoke(unittest.TestCase):
         totals = dict(zip(result["tea_base"], result["total_sales"]))
         self.assertEqual(totals["Matcha"], 5.0)
 
+    def test_modifier_pct_mix_empty_when_no_matches(self) -> None:
+        df = pd.DataFrame(
+            {
+                "modifiers_applied": ["Boba", "No Toppings", "Extra Foam"],
+            }
+        )
+        result = compute_sales_mix._compute_modifier_pct_mix(df, "Sugar")
+        self.assertTrue(result.empty)
+        self.assertEqual(list(result.columns), ["sugar_pct", "count", "share"])
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
