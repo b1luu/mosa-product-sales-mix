@@ -1,7 +1,13 @@
 """Shared configuration for sales mix pipeline."""
 
 # Refund notes that should be treated as valid sales.
-KEEP_REFUND_PATTERNS = (r"panda", r"hungry panda", r"\bhp\b")
+KEEP_REFUND_PATTERNS = (
+    r"panda",
+    r"hungry panda",
+    r"\bhp\b",
+    r"\bhp\d+\b",
+    r"\bhp\s*\d+\b",
+)
 
 # Item name patterns to exclude from product mix outputs.
 EXCLUDE_ITEM_PATTERNS = (

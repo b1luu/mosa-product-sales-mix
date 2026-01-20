@@ -170,12 +170,23 @@ class TestSmoke(unittest.TestCase):
         df = pd.DataFrame(
             {
                 "Event Type": ["Refund", "Refund", "Refund", "Refund", "Refund"],
-                "Notes": ["Hp", "HP", "Hp Order", "Hungry Panda", "Hp 1436"],
-                "item_name": ["A", "B", "C", "D", "E"],
+                "Notes": [
+                    "Hp",
+                    "HP",
+                    "Hp Order",
+                    "Hungry Panda",
+                    "Hp 1436",
+                    "HP1436",
+                    "hP1436",
+                ],
+                "item_name": ["A", "B", "C", "D", "E", "F", "G"],
             }
         )
         result = compute_sales_mix._filter_refunds(df)
-        self.assertEqual(result["item_name"].tolist(), ["A", "B", "C", "D", "E"])
+        self.assertEqual(
+            result["item_name"].tolist(),
+            ["A", "B", "C", "D", "E", "F", "G"],
+        )
 
     def test_filter_refunds_keeps_panda_misspelling(self) -> None:
         df = pd.DataFrame(
