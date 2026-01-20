@@ -113,6 +113,7 @@ python3 src/generate_figures.py
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 - Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, counts item pairs, and outputs support, confidence, and lift for the last 3 months. Pairs below 1% support are filtered out to reduce noise.
 - Anomaly detection notes: z-score is the number of standard deviations from the weekday baseline mean; a normal distribution rule of thumb is ~68% within 1σ, ~95% within 2σ, ~99.7% within 3σ (approximate). For the current 92-day sample, anomaly counts were 2.5 -> 2 days, 2.25 -> 2 days, 2.0 -> 3 days, 1.75 -> 6 days.
+- Anomaly threshold guidance: 2.25 is intentionally strict and highlights only major deviations. Use the top-10 by |z| list for a broader review set when you want more investigate-worthy days.
 - Rolling z-score notes: rolling z-score compares each day to the prior 14-day window (mean and std) to highlight short-term deviations after smoothing recent trends.
 - Robust z-score notes: uses median and MAD (median absolute deviation) instead of mean/std, which is less sensitive to extreme outliers.
 
