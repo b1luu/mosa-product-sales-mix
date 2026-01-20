@@ -792,7 +792,7 @@ def _compute_modifier_pct_mix(df: pd.DataFrame, label: str) -> pd.DataFrame:
 
 def _compute_item_pair_stats(
     df: pd.DataFrame,
-    min_support: float = 0.01,
+    min_support: float = 0.005,
     min_lift: float = 1.5,
     max_basket_size: int = 6,
 ) -> pd.DataFrame:
