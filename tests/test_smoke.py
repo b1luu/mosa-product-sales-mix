@@ -378,6 +378,36 @@ class TestSmoke(unittest.TestCase):
         result = compute_sales_mix._compute_item_pair_stats(df, min_support=0.6)
         self.assertTrue(result.empty)
 
+    def test_assign_milk_type_from_category(self) -> None:
+        df = pd.DataFrame(
+            {
+                "category_name": [
+                    "Milk Tea(Non Dairy) 奶茶系列",
+                    "Au Lait(Fresh Milk) 歐蕾系列",
+                    "Other",
+                ]
+            }
+        )
+        result = compute_sales_mix._assign_milk_type(df)
+        self.assertEqual(result["milk_type"].tolist(), ["Milk Tea", "Au Lait", "Unknown"])
+
+    def test_fresh_fruit_tea_base_mix_filters(self) -> None:
+        df = pd.DataFrame(
+            {
+                "item_name": [
+                    "Fresh Fruit Tea",
+                    "Fresh Fruit Tea",
+                    "Fresh Mango Tea",
+                ],
+                "tea_base": ["Green", "Four Seasons", "Green"],
+                "item_gross_sales": [10.0, 20.0, 30.0],
+            }
+        )
+        result = compute_sales_mix._compute_fresh_fruit_tea_base_mix(df)
+        totals = dict(zip(result["tea_base"], result["total_sales"]))
+        self.assertEqual(totals["Green"], 10.0)
+        self.assertEqual(totals["Four Seasons"], 20.0)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
