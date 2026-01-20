@@ -421,6 +421,48 @@ class TestSmoke(unittest.TestCase):
         with self.assertRaises(ValueError):
             compute_sales_mix._compute_daily_sales(df)
 
+    def test_assign_tea_base_chinese_aliases(self) -> None:
+        df = pd.DataFrame(
+            {
+                "item_name": [
+                    "鐵觀音奶茶",
+                    "抹茶拿鐵",
+                    "玄米綠奶茶",
+                    "四季春茶",
+                    "蕎麥奶茶",
+                    "熟成紅茶",
+                    "綠茶",
+                ],
+                "modifiers_applied": [""] * 7,
+                "category_name": [""] * 7,
+            }
+        )
+        result = compute_sales_mix._assign_tea_base(df)
+        self.assertEqual(
+            result["tea_base"].tolist(),
+            [
+                "TGY Oolong",
+                "Matcha",
+                "Genmai Green",
+                "Four Seasons",
+                "Buckwheat Barley",
+                "Black",
+                "Green",
+            ],
+        )
+
+    def test_tea_base_mix_excludes_merchandise(self) -> None:
+        df = pd.DataFrame(
+            {
+                "tea_base": ["Matcha", "Matcha"],
+                "item_gross_sales": [10.0, 5.0],
+                "category_name": ["Merchandise 周邊小物", "Mosa Signature 精選特調"],
+            }
+        )
+        result = compute_sales_mix._compute_tea_base_mix(df)
+        totals = dict(zip(result["tea_base"], result["total_sales"]))
+        self.assertEqual(totals["Matcha"], 5.0)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
