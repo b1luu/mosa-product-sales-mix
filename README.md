@@ -100,6 +100,7 @@ python3 src/generate_figures.py
 - Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`
 - Rolling z-score file: `date`, `total_sales`, `rolling_mean`, `rolling_std`, `z_score`
 - Robust z-score file: `date`, `total_sales`, `median`, `mad`, `z_score`
+- Top anomaly days file: `date`, `total_sales`, `weekday`, `baseline_mean`, `baseline_std`, `z_score`, `abs_z_score`
 - Percentages are decimals in the range 0-1 (multiply by 100 for percent).
 
 ## Notes

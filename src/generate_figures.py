@@ -831,6 +831,57 @@ def generate_robust_zscore_figure(
     return output_path
 
 
+def generate_top10_anomaly_sales_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a bar chart of top anomaly days by absolute z-score."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed top anomalies is empty; no figure generated.")
+
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("abs_z_score", ascending=True)
+    df["date_label"] = df["date"].dt.strftime("%Y-%m-%d")
+
+    fig_height = max(4, min(10, 0.6 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["date_label"], df["total_sales"], color="#6E7656")
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Gross Sales")
+    ax.set_ylabel("Date")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    for bar, z in zip(bars, df["z_score"]):
+        ax.text(
+            bar.get_width() + df["total_sales"].max() * 0.02,
+            bar.get_y() + bar.get_height() / 2,
+            f"z={z:.2f}",
+            va="center",
+            fontsize=8,
+            color="#374151",
+        )
+
+    ax.set_xlim(0, df["total_sales"].max() * 1.25)
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "anomaly_detection"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -1054,6 +1105,12 @@ def main() -> None:
         "global_daily_sales_robust_zscore.png",
         "Daily Sales Robust Z-Score (Median/MAD)",
     )
+    top10_anomaly_sales_output = generate_top10_anomaly_sales_figure(
+        base_dir,
+        "global_daily_sales_top10_anomalies.csv",
+        "global_daily_sales_top10_anomalies.png",
+        "Top 10 Anomaly Days by Z-Score (Gross Sales)",
+    )
     sugar_pct_output = generate_pct_mix_figure(
         base_dir,
         "global_sugar_pct_mix.csv",
@@ -1155,6 +1212,7 @@ def main() -> None:
     print(f"Saved figure: {daily_sales_anomaly_output}")
     print(f"Saved figure: {rolling_zscore_output}")
     print(f"Saved figure: {robust_zscore_output}")
+    print(f"Saved figure: {top10_anomaly_sales_output}")
     print(f"Saved figure: {sugar_pct_output}")
     print(f"Saved figure: {ice_pct_output}")
     print(f"Saved figure: {tea_base_last_month_output}")

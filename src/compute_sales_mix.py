@@ -691,6 +691,29 @@ def _compute_daily_anomalies_by_threshold(
     return anomalies
 
 
+def _compute_top_daily_anomalies_by_abs_zscore(
+    daily_sales_zscore: pd.DataFrame, top_n: int = 10
+) -> pd.DataFrame:
+    """Select top anomalies by absolute z-score."""
+    if daily_sales_zscore.empty:
+        return pd.DataFrame(
+            columns=[
+                "date",
+                "total_sales",
+                "weekday",
+                "baseline_mean",
+                "baseline_std",
+                "z_score",
+                "abs_z_score",
+            ]
+        )
+
+    ranked = daily_sales_zscore.copy()
+    ranked["abs_z_score"] = ranked["z_score"].abs()
+    ranked = ranked.sort_values("abs_z_score", ascending=False).head(top_n)
+    return ranked
+
+
 def _compute_daily_sales_rolling_zscore(
     daily_sales: pd.DataFrame, window: int = 14
 ) -> pd.DataFrame:
@@ -1016,6 +1039,9 @@ def main() -> None:
     global_daily_sales_anomalies = _compute_daily_anomalies_by_threshold(
         global_daily_sales_zscore
     )
+    global_daily_sales_top10 = _compute_top_daily_anomalies_by_abs_zscore(
+        global_daily_sales_zscore
+    )
     global_daily_sales_rolling = _compute_daily_sales_rolling_zscore(global_daily_sales)
     global_daily_sales_robust = _compute_daily_sales_robust_zscore(global_daily_sales)
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
@@ -1132,6 +1158,9 @@ def main() -> None:
     )
     global_daily_sales_anomalies.to_csv(
         processed_dir / "global_daily_sales_anomalies.csv", index=False
+    )
+    global_daily_sales_top10.to_csv(
+        processed_dir / "global_daily_sales_top10_anomalies.csv", index=False
     )
     global_daily_sales_rolling.to_csv(
         processed_dir / "global_daily_sales_rolling_zscore.csv", index=False
