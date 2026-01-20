@@ -138,7 +138,7 @@ python3 src/generate_figures.py
 
 ## Figures
 - Run `python3 src/generate_figures.py` to create PNGs in goal-based folders under `figures/`:
-  - `figures/anomaly_detection/`: daily anomalies, rolling z-score
+  - `figures/anomaly_detection/`: daily anomalies, rolling z-score, robust z-score
   - `figures/tea_base/`: tea base mix, fresh fruit base mix, top item by base
   - `figures/drink_share/`: category mix/share, channel mix, in-person mix, milk type mix, peak hours
   - `figures/toppings_mix/`: sugar % mix, ice % mix
