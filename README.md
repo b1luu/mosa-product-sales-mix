@@ -110,6 +110,11 @@ python3 src/generate_figures.py
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 - Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, counts item pairs, and outputs support, confidence, and lift for the last 3 months. Pairs below 1% support are filtered out to reduce noise.
 
+## Future Improvements
+- Co-purchase analysis: limit to top-N items, add lift thresholds, and segment by channel to improve signal quality.
+- Add item category-level co-purchase to reduce sparse pairs.
+- Track trends in pair strength over time (rolling 4-week).
+
 ## Channel Rules
 - Hungry Panda: `Notes` contains `Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, or `Pandaa`.
 - DoorDash / Uber Eats / Square Online: inferred from `Channel` values (case-insensitive match).
