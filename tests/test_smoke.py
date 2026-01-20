@@ -408,6 +408,19 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(totals["Green"], 10.0)
         self.assertEqual(totals["Four Seasons"], 20.0)
 
+    def test_compute_hourly_sales_empty(self) -> None:
+        df = pd.DataFrame(columns=["order_datetime", "item_gross_sales"])
+        result = compute_sales_mix._compute_hourly_sales(df)
+        self.assertTrue(result.empty)
+        self.assertEqual(
+            list(result.columns), ["hour", "total_sales", "sales_pct_of_total"]
+        )
+
+    def test_compute_daily_sales_missing_column(self) -> None:
+        df = pd.DataFrame({"item_gross_sales": [10.0]})
+        with self.assertRaises(ValueError):
+            compute_sales_mix._compute_daily_sales(df)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
