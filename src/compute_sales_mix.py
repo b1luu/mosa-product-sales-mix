@@ -898,6 +898,7 @@ def main() -> None:
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
     last_3_top_item_by_tea_base = _compute_top_item_by_tea_base(df_last_3_months)
+    last_3_order_count = df_last_3_months["order_id"].nunique()
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
         df_last_3_months
@@ -1002,6 +1003,9 @@ def main() -> None:
     last_3_top_item_by_tea_base.to_csv(
         processed_dir / "last_3_months_top_item_by_tea_base.csv", index=False
     )
+    pd.DataFrame(
+        [{"metric": "last_3_months_order_count", "value": last_3_order_count}]
+    ).to_csv(processed_dir / "last_3_months_order_count.csv", index=False)
     global_in_person.to_csv(
         processed_dir / "global_in_person_mix.csv", index=False
     )

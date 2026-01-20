@@ -701,9 +701,72 @@ def generate_daily_sales_anomalies_figure(
     return output_path
 
 
+def generate_pct_mix_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    pct_label: str,
+    bar_color: str,
+    order_count: int | None = None,
+) -> Path:
+    """Create a bar chart for sugar/ice percent mix."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed percent mix is empty; no figure generated.")
+
+    df = df.sort_values(pct_label)
+    labels = df[pct_label].astype(int).astype(str) + "%"
+
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    bars = ax.bar(labels, df["share"], color=bar_color)
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Percent")
+    ax.set_ylabel("Share of Orders")
+
+    ticks = ax.get_yticks()
+    ax.set_yticklabels([_format_pct(tick) for tick in ticks])
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+
+    ax.bar_label(bars, labels=[_format_pct(v) for v in df["share"]], padding=2, fontsize=8)
+    ax.set_ylim(0, df["share"].max() * 1.2)
+
+    if order_count is not None:
+        ax.text(
+            0.98,
+            0.98,
+            f"Last 3 Months Orders: {order_count:,}",
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            color="#4B5563",
+        )
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
+    order_count_path = base_dir / "data" / "processed" / "last_3_months_order_count.csv"
+    order_count = None
+    if order_count_path.exists():
+        try:
+            order_count = int(pd.read_csv(order_count_path)["value"].iloc[0])
+        except (KeyError, ValueError, IndexError):
+            order_count = None
     last_month_output = generate_product_mix_figure(
         base_dir,
         "last_month_product_mix.csv",
@@ -905,6 +968,24 @@ def main() -> None:
         "Daily Sales Anomalies (Z-Score vs Weekday Baseline)",
         threshold=2.5,
     )
+    sugar_pct_output = generate_pct_mix_figure(
+        base_dir,
+        "global_sugar_pct_mix.csv",
+        "global_sugar_pct_mix.png",
+        "Sugar Level Mix (All Data)",
+        "sugar_pct",
+        "#5A8F3A",
+        order_count=order_count,
+    )
+    ice_pct_output = generate_pct_mix_figure(
+        base_dir,
+        "global_ice_pct_mix.csv",
+        "global_ice_pct_mix.png",
+        "Ice Level Mix (All Data)",
+        "ice_pct",
+        "#3E6B2C",
+        order_count=order_count,
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -986,6 +1067,8 @@ def main() -> None:
     print(f"Saved figure: {top_item_by_base_last_3_months_output}")
     print(f"Saved figure: {top_item_by_base_global_output}")
     print(f"Saved figure: {daily_sales_anomaly_output}")
+    print(f"Saved figure: {sugar_pct_output}")
+    print(f"Saved figure: {ice_pct_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")
