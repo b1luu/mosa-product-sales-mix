@@ -354,6 +354,30 @@ class TestSmoke(unittest.TestCase):
         self.assertTrue((result["baseline_std"] == 0).all())
         self.assertTrue((result["z_score"] == 0).all())
 
+    def test_item_pair_stats_basic(self) -> None:
+        df = pd.DataFrame(
+            {
+                "order_id": ["o1", "o1", "o2", "o2", "o3"],
+                "item_name": ["A", "B", "A", "C", "A"],
+            }
+        )
+        result = compute_sales_mix._compute_item_pair_stats(df, min_support=0.0)
+        pair = result[(result["item_a"] == "A") & (result["item_b"] == "B")].iloc[0]
+        self.assertEqual(pair["count"], 1)
+        self.assertAlmostEqual(pair["support"], 1 / 2)
+        self.assertAlmostEqual(pair["confidence"], 1 / 2)
+        self.assertAlmostEqual(pair["lift"], 1.0)
+
+    def test_item_pair_stats_min_support_filters(self) -> None:
+        df = pd.DataFrame(
+            {
+                "order_id": ["o1", "o1", "o2", "o2"],
+                "item_name": ["A", "B", "A", "C"],
+            }
+        )
+        result = compute_sales_mix._compute_item_pair_stats(df, min_support=0.6)
+        self.assertTrue(result.empty)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
