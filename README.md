@@ -135,4 +135,9 @@ python3 src/generate_figures.py
 - Run smoke tests only: `python3 -m unittest tests.test_smoke`
 
 ## Figures
-- Run `python3 src/generate_figures.py` to create PNGs in `figures/` for product mix, top 10 products, category mix/share, channel mix, in-person mix, tea base mix, milk type mix, fresh fruit tea base mix, top item by tea base, peak hours, daily sales anomalies, rolling z-score, and a Pareto chart.
+- Run `python3 src/generate_figures.py` to create PNGs in goal-based folders under `figures/`:
+  - `figures/anomaly_detection/`: daily anomalies, rolling z-score
+  - `figures/tea_base/`: tea base mix, fresh fruit base mix, top item by base
+  - `figures/drink_share/`: category mix/share, channel mix, in-person mix, milk type mix, peak hours
+  - `figures/toppings_mix/`: sugar % mix, ice % mix
+  - `figures/items/`: product mix, top 10 products, Pareto chart

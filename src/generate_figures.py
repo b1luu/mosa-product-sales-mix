@@ -124,7 +124,7 @@ def generate_product_mix_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -212,7 +212,7 @@ def generate_top_products_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -266,7 +266,7 @@ def generate_category_mix_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "drink_share"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -344,7 +344,7 @@ def generate_pareto_products_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -408,7 +408,7 @@ def generate_category_share_donut(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "drink_share"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -471,7 +471,7 @@ def generate_channel_mix_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "drink_share"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -524,7 +524,7 @@ def generate_tea_base_mix_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "tea_base"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -581,7 +581,7 @@ def generate_peak_hours_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "drink_share"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -640,7 +640,7 @@ def generate_top_item_by_tea_base_figure(
     ax.set_xlim(0, max_sales * 1.25)
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "tea_base"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -693,7 +693,7 @@ def generate_daily_sales_anomalies_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "anomaly_detection"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -749,7 +749,7 @@ def generate_pct_mix_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "toppings_mix"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
@@ -786,7 +786,7 @@ def generate_rolling_zscore_figure(
 
     fig.tight_layout()
 
-    figures_dir = base_dir / "figures"
+    figures_dir = base_dir / "figures" / "anomaly_detection"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
