@@ -225,7 +225,7 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     kiosk_mask = channel.str.contains("kiosk", case=False, na=False) | source_kiosk
     register_mask = source_register
     in_person_channel = in_person_channel.mask(kiosk_mask, "Kiosk")
-    in_person_channel = in_person_channel.mask(register_mask, "Counter")
+    in_person_channel = in_person_channel.mask(register_mask, "Register")
     in_person_channel = in_person_channel.where(channel_group == "In Person", "")
 
     df["channel_group"] = channel_group
