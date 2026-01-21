@@ -1169,6 +1169,7 @@ def main() -> None:
     )
     last_3_category = _compute_category_mix(df_last_3_months)
     last_3_product = _compute_product_mix(df_last_3_months)
+    last_3_top10_products = _compute_top_products_with_other(df_last_3_months, top_n=9)
     last_3_channel = _compute_channel_mix(df_last_3_months)
     last_3_in_person = _compute_in_person_mix(df_last_3_months)
     last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
@@ -1251,6 +1252,9 @@ def main() -> None:
     )
     last_3_product.to_csv(
         processed_dir / "last_3_months_product_mix.csv", index=False
+    )
+    last_3_top10_products.to_csv(
+        processed_dir / "last_3_months_top_10_products_with_other.csv", index=False
     )
     global_category.to_csv(processed_dir / "global_category_mix.csv", index=False)
     global_product.to_csv(processed_dir / "global_product_mix.csv", index=False)
