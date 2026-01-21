@@ -519,6 +519,25 @@ class TestSmoke(unittest.TestCase):
         channel_ids = set(pd.read_csv(channel_path, usecols=["Transaction ID"])["Transaction ID"])
         self.assertEqual(raw_ids, channel_ids)
 
+    def test_global_category_mix_pct_and_totals(self) -> None:
+        base_dir = Path(__file__).resolve().parents[1]
+        raw_path = base_dir / "data" / "raw" / "items-2025-10-01-2026-01-01.csv"
+        if not raw_path.exists():
+            self.skipTest("Missing raw data for validation.")
+        df = pd.read_csv(raw_path)
+        df = compute_sales_mix._normalize_columns(df)
+        df = compute_sales_mix._build_order_datetime(df)
+        df = compute_sales_mix._coerce_sales(df)
+        df = compute_sales_mix._filter_refunds(df)
+        df = compute_sales_mix._filter_non_product_items(df)
+        result = compute_sales_mix._compute_category_mix(df)
+        total_sales = result["total_sales"].sum()
+        raw_total_sales = df["item_gross_sales"].sum()
+        self.assertAlmostEqual(total_sales, raw_total_sales, places=2)
+        self.assertAlmostEqual(
+            result["category_sales_pct_of_total"].sum(), 1.0, places=3
+        )
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
