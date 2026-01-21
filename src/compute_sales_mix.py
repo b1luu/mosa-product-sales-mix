@@ -179,30 +179,21 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     """Assign channel and in-person subchannel labels."""
     df = df.copy()
     columns = {col.strip().lower(): col for col in df.columns}
-    channel_col = columns.get("channel")
     source_col = columns.get("source")
     notes_col = columns.get("notes")
     item_col = columns.get("item_name")
 
     notes = df[notes_col].astype(str) if notes_col else pd.Series("", index=df.index)
-    channel = df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
-    source = df[source_col].astype(str) if source_col else pd.Series("", index=df.index)
     items = df[item_col].astype(str) if item_col else pd.Series("", index=df.index)
+    source = df[source_col].astype(str) if source_col else pd.Series("", index=df.index)
 
-    # Priority: HP tags first, then delivery platforms, otherwise in-person.
     panda_pattern = "|".join(KEEP_REFUND_PATTERNS)
     hungry_panda = notes.str.contains(panda_pattern, case=False, na=False) | items.str.contains(
         panda_pattern, case=False, na=False
     )
-    doordash = channel.str.contains("doordash", case=False, na=False) | source.str.contains(
-        "doordash", case=False, na=False
-    )
-    ubereats = channel.str.contains("uber", case=False, na=False) | source.str.contains(
-        "uber", case=False, na=False
-    )
-    square_online = channel.str.contains(
-        "square online|online", case=False, na=False
-    ) | source.str.contains("square online|online", case=False, na=False)
+    doordash = source.str.contains("doordash", case=False, na=False)
+    ubereats = source.str.contains("uber", case=False, na=False)
+    square_online = source.str.contains("square online|online", case=False, na=False)
     source_kiosk = source.str.contains("kiosk", case=False, na=False)
     source_register = source.str.contains("register", case=False, na=False)
 
@@ -211,21 +202,9 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     channel_group = channel_group.mask(doordash, "DoorDash")
     channel_group = channel_group.mask(ubereats, "Uber Eats")
     channel_group = channel_group.mask(square_online, "Square Online")
-    channel_group = channel_group.mask(source_kiosk | source_register, "In Person")
 
-    other_mask = (
-        ~hungry_panda & ~doordash & ~ubereats & ~square_online
-        & channel.str.strip().ne("")
-        & ~channel.str.contains("mosa tea|kiosk", case=False, na=False)
-    )
-    channel_group = channel_group.mask(other_mask, "Other")
-
-    # Split in-person orders into kiosk vs counter.
-    in_person_channel = pd.Series("Counter", index=df.index)
-    kiosk_mask = channel.str.contains("kiosk", case=False, na=False) | source_kiosk
-    register_mask = source_register
-    in_person_channel = in_person_channel.mask(kiosk_mask, "Kiosk")
-    in_person_channel = in_person_channel.mask(register_mask, "Register")
+    in_person_channel = pd.Series("Register", index=df.index)
+    in_person_channel = in_person_channel.mask(source_kiosk, "Kiosk")
     in_person_channel = in_person_channel.where(channel_group == "In Person", "")
 
     df["channel_group"] = channel_group
