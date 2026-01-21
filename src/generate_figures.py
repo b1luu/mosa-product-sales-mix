@@ -375,7 +375,7 @@ def generate_category_mix_figure(
         label.set_fontweight("bold")
 
     labels = [
-        f"{_format_currency_k(sales)} ({_format_pct(pct)})"
+        f"{_format_currency(sales)} ({_format_pct(pct)})"
         for sales, pct in zip(df[sales_column], df[value_column])
     ]
     ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
@@ -1378,12 +1378,12 @@ def main() -> None:
     )
     category_global_output = generate_category_mix_figure(
         base_dir,
-        "global_category_mix_net.csv",
+        "global_category_mix.csv",
         "global_category_mix.png",
-        "Category Mix (All Data, Net Sales)",
+        "Category Mix (All Data)",
         value_column="category_sales_pct_of_total",
-        sales_column="total_net_sales",
-        x_label="Total Net Sales",
+        sales_column="total_sales",
+        x_label="Total Sales",
     )
     print(f"Saved figure: {last_month_product_mix_output}")
     print(f"Saved figure: {last_3_months_product_mix_output}")
