@@ -207,6 +207,7 @@ def generate_top_products_figure(
         handles=handles,
         title="Category",
         loc="lower right",
+        bbox_to_anchor=(1.0, 0.0),
         frameon=False,
     )
 
