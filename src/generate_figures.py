@@ -111,16 +111,7 @@ def generate_product_mix_figure(
     max_pct = df["product_sales_pct_of_total"].max()
     ax.set_xlim(0, max_pct * 1.15)
 
-    handles = [
-        plt.Line2D([0], [0], color=color_map[cat], lw=6, label=cat)
-        for cat in categories
-    ]
-    ax.legend(
-        handles=handles,
-        title="Category",
-        loc="upper left",
-        frameon=False,
-    )
+    # Legend removed to avoid overlap on dense charts.
 
     fig.tight_layout()
 
@@ -994,13 +985,13 @@ def main() -> None:
             order_count = int(pd.read_csv(order_count_path)["value"].iloc[0])
         except (KeyError, ValueError, IndexError):
             order_count = None
-    last_month_output = generate_product_mix_figure(
+    last_month_product_mix_output = generate_product_mix_figure(
         base_dir,
         "last_month_product_mix.csv",
         "last_month_product_mix.png",
         "Last Month Product Mix",
     )
-    last_3_months_output = generate_product_mix_figure(
+    last_3_months_product_mix_output = generate_product_mix_figure(
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_product_mix.png",
@@ -1302,8 +1293,8 @@ def main() -> None:
         "global_category_mix.png",
         "Category Mix (All Data)",
     )
-    print(f"Saved figure: {last_month_output}")
-    print(f"Saved figure: {last_3_months_output}")
+    print(f"Saved figure: {last_month_product_mix_output}")
+    print(f"Saved figure: {last_3_months_product_mix_output}")
     print(f"Saved figure: {top_products_output}")
     print(f"Saved figure: {top_products_25_output}")
     print(f"Saved figure: {category_output}")
