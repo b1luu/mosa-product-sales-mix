@@ -182,13 +182,18 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     channel_col = columns.get("channel")
     source_col = columns.get("source")
     notes_col = columns.get("notes")
+    item_col = columns.get("item_name")
 
     notes = df[notes_col].astype(str) if notes_col else pd.Series("", index=df.index)
     channel = df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
     source = df[source_col].astype(str) if source_col else pd.Series("", index=df.index)
+    items = df[item_col].astype(str) if item_col else pd.Series("", index=df.index)
 
     # Priority: HP tags first, then delivery platforms, otherwise in-person.
-    hungry_panda = notes.str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
+    panda_pattern = "|".join(KEEP_REFUND_PATTERNS)
+    hungry_panda = notes.str.contains(panda_pattern, case=False, na=False) | items.str.contains(
+        panda_pattern, case=False, na=False
+    )
     doordash = channel.str.contains("doordash", case=False, na=False) | source.str.contains(
         "doordash", case=False, na=False
     )
