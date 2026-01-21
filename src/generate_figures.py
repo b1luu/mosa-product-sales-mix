@@ -1010,11 +1010,11 @@ def main() -> None:
         "last_month_top_25_products_with_other.png",
         "Top 25 Products (Last Month)",
     )
-    top_products_10_with_other_output = generate_top_products_with_other_figure(
+    top_products_25_with_other_output = generate_top_products_with_other_figure(
         base_dir,
-        "last_3_months_top_10_products_with_other.csv",
-        "last_3_months_top_10_products_with_other.png",
-        "Top 10 Products (Last 3 Months)",
+        "last_3_months_top_25_products_with_other.csv",
+        "last_3_months_top_25_products_with_other.png",
+        "Top 25 Products (Last 3 Months)",
     )
     category_output = generate_category_mix_figure(
         base_dir,
@@ -1303,7 +1303,7 @@ def main() -> None:
     print(f"Saved figure: {last_3_months_product_mix_output}")
     print(f"Saved figure: {top_products_output}")
     print(f"Saved figure: {top_products_25_output}")
-    print(f"Saved figure: {top_products_10_with_other_output}")
+    print(f"Saved figure: {top_products_25_with_other_output}")
     print(f"Saved figure: {category_output}")
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {category_3_months_output}")
