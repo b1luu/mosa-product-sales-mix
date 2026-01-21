@@ -509,6 +509,16 @@ class TestSmoke(unittest.TestCase):
         self.assertEqual(result["mad"].iloc[0], 0.0)
         self.assertTrue((result["z_score"] == 0).all())
 
+    def test_channelmix_transactions_match_raw(self) -> None:
+        base_dir = Path(__file__).resolve().parents[1]
+        raw_path = base_dir / "data" / "raw" / "items-2025-10-01-2026-01-01.csv"
+        channel_path = base_dir / "data" / "private" / "channelmix-raw.csv"
+        if not raw_path.exists() or not channel_path.exists():
+            self.skipTest("Missing raw or channel mix file for validation.")
+        raw_ids = set(pd.read_csv(raw_path, usecols=["Transaction ID"])["Transaction ID"])
+        channel_ids = set(pd.read_csv(channel_path, usecols=["Transaction ID"])["Transaction ID"])
+        self.assertEqual(raw_ids, channel_ids)
+
     def test_filter_refunds_abs_panda_sales(self) -> None:
         df = pd.DataFrame(
             {
