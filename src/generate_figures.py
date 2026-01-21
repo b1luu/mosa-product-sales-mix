@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from matplotlib import font_manager
+from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -19,6 +20,13 @@ def _format_pct(value: float) -> str:
 def _format_currency(value: float) -> str:
     """Format currency values for axis labels."""
     return f"${value:,.2f}"
+
+
+def _format_currency_k(value: float) -> str:
+    """Format currency values using K for thousands."""
+    if value >= 1000:
+        return f"${value/1000:.1f}K"
+    return f"${value:,.0f}"
 
 
 def _set_cjk_font() -> str | None:
@@ -244,11 +252,10 @@ def generate_top_products_with_other_figure(
     ax.set_xlabel("Total Sales")
     ax.set_ylabel("Product")
 
-    ticks = ax.get_xticks()
-    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
     ax.grid(axis="x", linestyle="--", alpha=0.3)
 
-    ax.bar_label(bars, labels=[_format_currency(v) for v in df["total_sales"]], padding=3, fontsize=8)
+    ax.bar_label(bars, labels=[_format_currency_k(v) for v in df["total_sales"]], padding=3, fontsize=8)
     ax.set_xlim(0, df["total_sales"].max() * 1.2)
 
     fig.tight_layout()
@@ -303,8 +310,7 @@ def generate_top_products_sales_figure(
     ax.set_xlabel("Total Sales")
     ax.set_ylabel("Product")
 
-    ticks = ax.get_xticks()
-    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
     ax.grid(axis="x", linestyle="--", alpha=0.3)
 
     labels = [
@@ -729,8 +735,7 @@ def generate_top_item_by_tea_base_figure(
     ax.set_xlabel("Total Sales")
     ax.set_ylabel("Tea Base")
 
-    ticks = ax.get_xticks()
-    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
     ax.grid(axis="x", linestyle="--", alpha=0.3)
 
     max_sales = df["total_sales"].max()
