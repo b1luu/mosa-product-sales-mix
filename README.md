@@ -87,7 +87,9 @@ python3 src/generate_figures.py
 - `data/processed/last_3_months_top_item_by_tea_base.csv`
 - `data/processed/global_top_item_by_tea_base.csv`
 - `data/processed/last_3_months_order_count.csv`
+- `data/processed/last_3_months_topping_popularity.csv`
 - `data/processed/last_3_months_item_pair_stats.csv`
+- `data/processed/last_3_months_item_pair_top10.csv`
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
@@ -98,6 +100,7 @@ python3 src/generate_figures.py
 - Top item by tea base files: `tea_base`, `item_name`, `total_sales`, `item_sales_pct_of_base`
 - Hourly sales files: `hour`, `total_sales`, `sales_pct_of_total`
 - Item pair stats files: `item_a`, `item_b`, `count`, `support`, `confidence`, `lift`, `pair_sales`, `pair_sales_pct_of_total`, `total_transactions`
+- Topping popularity files: `topping`, `count`, `share_of_toppings`
 - Rolling z-score file: `date`, `total_sales`, `rolling_mean`, `rolling_std`, `z_score`
 - Robust z-score file: `date`, `total_sales`, `median`, `mad`, `z_score`
 - Top anomaly days file: `date`, `total_sales`, `weekday`, `baseline_mean`, `baseline_std`, `z_score`, `abs_z_score`
@@ -113,6 +116,7 @@ python3 src/generate_figures.py
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 - Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, filters to baskets with 2-6 items, and outputs support, confidence, lift, and pair-level sales for the last 3 months. Pairs below 0.5% support or lift < 1.5 are filtered out to reduce noise.
 - Co-purchase disclaimer: current pair supports are under 1% of transactions, so results are noted as a practical attempt but are not considered actionable and are not driving decisions.
+- Topping popularity: extracted from `Modifiers Applied` by removing tea base choices and sugar/ice level entries; counts reflect how often toppings appear across orders.
 - Anomaly detection notes: z-score is the number of standard deviations from the weekday baseline mean; a normal distribution rule of thumb is ~68% within 1σ, ~95% within 2σ, ~99.7% within 3σ (approximate). For the current 92-day sample, anomaly counts were 2.5 -> 2 days, 2.25 -> 2 days, 2.0 -> 3 days, 1.75 -> 6 days.
 - Anomaly threshold guidance: 2.25 is intentionally strict and highlights only major deviations. Use the top-10 by |z| list for a broader review set when you want more investigate-worthy days.
 - Rolling z-score notes: rolling z-score compares each day to the prior 14-day window (mean and std) to highlight short-term deviations after smoothing recent trends.
@@ -145,5 +149,5 @@ python3 src/generate_figures.py
   - `figures/anomaly_detection/`: daily anomalies, rolling z-score, robust z-score
   - `figures/tea_base/`: tea base mix, fresh fruit base mix, top item by base
   - `figures/drink_share/`: category mix/share, channel mix, in-person mix, milk type mix, peak hours
-  - `figures/toppings_mix/`: sugar % mix, ice % mix
+  - `figures/toppings_mix/`: sugar % mix, ice % mix, top toppings
   - `figures/items/`: product mix, top 10 products, Pareto chart

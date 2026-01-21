@@ -882,6 +882,58 @@ def generate_top10_anomaly_sales_figure(
     return output_path
 
 
+def generate_topping_popularity_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    top_n: int = 10,
+) -> Path:
+    """Create a bar chart of most popular toppings."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed topping popularity is empty; no figure generated.")
+
+    df = df[~df["topping"].astype(str).str.contains(r"\bx\\d+\\b|×", na=False)]
+    df = df.sort_values("count", ascending=False).head(top_n)
+    df = df.sort_values("count", ascending=True)
+
+    fig_height = max(4, min(10, 0.6 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["topping"], df["count"], color="#5A8F3A")
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Orders with Topping")
+    ax.set_ylabel("Topping")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([f"{int(tick):,}" for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    for bar, share in zip(bars, df["share_of_toppings"]):
+        ax.text(
+            bar.get_width() + df["count"].max() * 0.02,
+            bar.get_y() + bar.get_height() / 2,
+            _format_pct(share),
+            va="center",
+            fontsize=8,
+            color="#374151",
+        )
+
+    ax.set_xlim(0, df["count"].max() * 1.25)
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "toppings_mix"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -1129,6 +1181,13 @@ def main() -> None:
         "#3E6B2C",
         order_count=order_count,
     )
+    topping_popularity_output = generate_topping_popularity_figure(
+        base_dir,
+        "last_3_months_topping_popularity.csv",
+        "last_3_months_topping_popularity.png",
+        "Top 10 Toppings (Last 3 Months)",
+        top_n=10,
+    )
     tea_base_last_month_output = generate_tea_base_mix_figure(
         base_dir,
         "last_month_tea_base_mix.csv",
@@ -1215,6 +1274,7 @@ def main() -> None:
     print(f"Saved figure: {top10_anomaly_sales_output}")
     print(f"Saved figure: {sugar_pct_output}")
     print(f"Saved figure: {ice_pct_output}")
+    print(f"Saved figure: {topping_popularity_output}")
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")

@@ -790,6 +790,84 @@ def _compute_modifier_pct_mix(df: pd.DataFrame, label: str) -> pd.DataFrame:
     return mix
 
 
+def _extract_toppings(modifiers: pd.Series, item_names: pd.Series) -> pd.Series:
+    """Extract topping names from modifiers applied and item defaults."""
+    if modifiers.empty:
+        return pd.Series(dtype=str)
+
+    tokens = modifiers.fillna("").astype(str).str.split(",")
+    toppings = tokens.explode().str.strip()
+    toppings = toppings[toppings.ne("")]
+
+    lowered = toppings.str.lower()
+    is_sugar = lowered.str.contains("sugar", na=False)
+    is_ice = lowered.str.contains("ice", na=False)
+    is_jelly = lowered.str.contains("jelly", na=False)
+    is_foam = lowered.str.contains("foam", na=False)
+    is_boba = lowered.str.contains("boba", na=False)
+    is_tea = lowered.str.contains("tea", na=False) & ~is_jelly
+    is_base = lowered.str.contains("genmai|oat milk|extra matcha|no chestnut", na=False)
+    is_multiplier = lowered.str.contains(r"\bx\\d+\b|×", na=False)
+    is_sugar_level = is_sugar & ~(is_jelly | is_foam | is_boba)
+
+    toppings = toppings[~(is_sugar_level | is_ice | is_tea | is_base | is_multiplier)]
+
+    normalized = toppings.copy()
+    normalized = normalized.str.replace(
+        "Osmanthus Tie Guan Yin Jelly", "Tea Jelly", regex=False
+    )
+    normalized = normalized.str.replace(
+        "Tie Guan Yin Oolong Jelly", "Tea Jelly", regex=False
+    )
+    normalized = normalized.str.replace(
+        r"Brown Sugar.*Tapioca Jelly", "HK Jelly", regex=True
+    )
+    normalized = normalized.str.replace(
+        r"Brown Sugar.*Jelly", "HK Jelly", regex=True
+    )
+    normalized = normalized.str.replace(
+        "Hún-Kué (Tapioca Jelly)", "HK Jelly", regex=False
+    )
+    normalized = normalized.str.replace("HK Jelly", "HK Jelly", regex=False)
+    normalized = normalized.str.replace("Boba", "Boba", regex=False)
+    normalized = normalized.str.replace("Cream Foam", "Cream Foam", regex=False)
+    normalized = normalized.str.replace("Brown Sugar Cream Foam", "Cream Foam", regex=False)
+
+    item_lower = item_names.fillna("").astype(str).str.lower()
+    has_taiwanese_retro = item_lower.str.contains("taiwanese retro|珍珠", na=False)
+    has_grapefruit_bloom = item_lower.str.contains("grapefruit bloom|柚香", na=False)
+    has_tgy_special = item_lower.str.contains("tgy special|鐵觀音奶茶", na=False)
+    extras = []
+    if has_taiwanese_retro.any():
+        extras.extend(["Boba"] * has_taiwanese_retro.sum())
+    if has_grapefruit_bloom.any():
+        extras.extend(["Tea Jelly"] * has_grapefruit_bloom.sum())
+    if has_tgy_special.any():
+        extras.extend(["HK Jelly"] * has_tgy_special.sum())
+    if extras:
+        normalized = pd.concat([normalized, pd.Series(extras)], ignore_index=True)
+
+    return normalized
+
+
+def _compute_topping_popularity(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute topping popularity from modifiers."""
+    if df.empty:
+        return pd.DataFrame(columns=["topping", "count", "share_of_toppings"])
+
+    if "modifiers_applied" not in df.columns or "item_name" not in df.columns:
+        raise ValueError("Missing required column: modifiers_applied or item_name")
+
+    toppings = _extract_toppings(df["modifiers_applied"], df["item_name"])
+    if toppings.empty:
+        return pd.DataFrame(columns=["topping", "count", "share_of_toppings"])
+
+    counts = toppings.value_counts().rename_axis("topping").reset_index(name="count")
+    total = counts["count"].sum()
+    counts["share_of_toppings"] = counts["count"] / total if total else 0.0
+    return counts
+
+
 def _compute_item_pair_stats(
     df: pd.DataFrame,
     min_support: float = 0.005,
@@ -1048,6 +1126,7 @@ def main() -> None:
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
     last_3_top_item_by_tea_base = _compute_top_item_by_tea_base(df_last_3_months)
+    last_3_topping_popularity = _compute_topping_popularity(df_last_3_months)
     last_3_order_count = df_last_3_months["order_id"].nunique()
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
     last_3_weekday_hourly, last_3_weekend_hourly = _compute_weekday_weekend_hourly(
@@ -1159,6 +1238,9 @@ def main() -> None:
     )
     last_3_top_item_by_tea_base.to_csv(
         processed_dir / "last_3_months_top_item_by_tea_base.csv", index=False
+    )
+    last_3_topping_popularity.to_csv(
+        processed_dir / "last_3_months_topping_popularity.csv", index=False
     )
     pd.DataFrame(
         [{"metric": "last_3_months_order_count", "value": last_3_order_count}]
