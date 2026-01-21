@@ -261,6 +261,71 @@ def generate_top_products_with_other_figure(
     return output_path
 
 
+def generate_top_products_sales_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    top_n: int = 10,
+) -> Path:
+    """Create a horizontal bar chart for top-N products by sales."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed product mix is empty; no figure generated.")
+
+    df = df[
+        ~df["item_name"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
+    ]
+
+    df = df.sort_values("total_sales", ascending=False).head(top_n)
+    df = df.sort_values("total_sales", ascending=True)
+    df["label"] = df["item_name"].fillna("Unknown Item")
+
+    fig_height = max(4, min(12, 0.5 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["label"], df["total_sales"], color="#4B7B9B")
+    ax.set_title(title, pad=4)
+    ax.set_xlabel("Total Sales")
+    ax.set_ylabel("Product")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    labels = [
+        f"{_format_currency(sales)} ({_format_pct(pct)})"
+        for sales, pct in zip(
+            df["total_sales"], df["product_sales_pct_of_total"]
+        )
+    ]
+    ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
+    ax.set_xlim(0, df["total_sales"].max() * 1.3)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "items"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Category mix figures ---
 def generate_category_mix_figure(
     base_dir: Path,
@@ -1004,6 +1069,13 @@ def main() -> None:
         "Top 10 Products (Last Month)",
         top_n=10,
     )
+    top_products_sales_last_3_months_output = generate_top_products_sales_figure(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_top_10_products_sales.png",
+        "Top 10 Products by Sales (Last 3 Months)",
+        top_n=10,
+    )
     top_products_25_output = generate_top_products_with_other_figure(
         base_dir,
         "last_month_top_25_products_with_other.csv",
@@ -1302,6 +1374,7 @@ def main() -> None:
     print(f"Saved figure: {last_month_product_mix_output}")
     print(f"Saved figure: {last_3_months_product_mix_output}")
     print(f"Saved figure: {top_products_output}")
+    print(f"Saved figure: {top_products_sales_last_3_months_output}")
     print(f"Saved figure: {top_products_25_output}")
     print(f"Saved figure: {top_products_25_with_other_output}")
     print(f"Saved figure: {category_output}")

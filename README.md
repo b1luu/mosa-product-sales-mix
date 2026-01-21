@@ -152,4 +152,4 @@ python3 src/generate_figures.py
   - `figures/tea_base/`: tea base mix, fresh fruit base mix, top item by base
   - `figures/drink_share/`: category mix/share, channel mix, in-person mix, milk type mix, peak hours
   - `figures/toppings_mix/`: sugar % mix, ice % mix, top toppings
-  - `figures/items/`: product mix, top 10 products, Pareto chart
+  - `figures/items/`: product mix, top 10 products, top 10 products by sales, Pareto chart
