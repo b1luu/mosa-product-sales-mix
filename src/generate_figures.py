@@ -338,6 +338,9 @@ def generate_category_mix_figure(
     processed_name: str,
     output_name: str,
     title: str,
+    value_column: str = "category_sales_pct_of_total",
+    sales_column: str = "total_sales",
+    x_label: str = "Percent of Total Sales",
 ) -> Path:
     """Create a horizontal bar chart for category mix."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -355,26 +358,29 @@ def generate_category_mix_figure(
     if df.empty:
         raise ValueError("Processed category mix is empty; no figure generated.")
 
-    df = df.sort_values("category_sales_pct_of_total", ascending=True)
+    df = df.sort_values(value_column, ascending=True)
     df["label"] = df["category_name"].fillna("Uncategorized")
 
     fig_height = max(4, min(10, 0.5 * len(df)))
     fig, ax = plt.subplots(figsize=(9, fig_height))
-    bars = ax.barh(df["label"], df["category_sales_pct_of_total"], color="#2A6F8F")
+    bars = ax.barh(df["label"], df[sales_column], color="#2A6F8F")
     ax.set_title(title, pad=4)
-    ax.set_xlabel("Percent of Total Sales")
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Category")
 
-    ticks = ax.get_xticks()
-    ax.set_xticklabels([_format_pct(tick) for tick in ticks])
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
     ax.grid(axis="x", linestyle="--", alpha=0.3)
 
     for label in ax.get_yticklabels():
         label.set_fontweight("bold")
 
-    ax.bar_label(bars, labels=[_format_pct(v) for v in df["category_sales_pct_of_total"]], padding=3)
-    max_pct = df["category_sales_pct_of_total"].max()
-    ax.set_xlim(0, max_pct * 1.15)
+    labels = [
+        f"{_format_currency_k(sales)} ({_format_pct(pct)})"
+        for sales, pct in zip(df[sales_column], df[value_column])
+    ]
+    ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
+    max_sales = df[sales_column].max()
+    ax.set_xlim(0, max_sales * 1.2)
 
     fig.tight_layout()
 
@@ -1372,9 +1378,12 @@ def main() -> None:
     )
     category_global_output = generate_category_mix_figure(
         base_dir,
-        "global_category_mix.csv",
+        "global_category_mix_net.csv",
         "global_category_mix.png",
-        "Category Mix (All Data)",
+        "Category Mix (All Data, Net Sales)",
+        value_column="category_sales_pct_of_total",
+        sales_column="total_net_sales",
+        x_label="Total Net Sales",
     )
     print(f"Saved figure: {last_month_product_mix_output}")
     print(f"Saved figure: {last_3_months_product_mix_output}")

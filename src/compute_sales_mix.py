@@ -25,6 +25,7 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         "quantity": ["quantity", "qty"],
         "modifiers_applied": ["modifiers applied", "modifier", "modifiers"],
         "source": ["source", "order source", "fulfillment source"],
+        "item_net_sales": ["net sales", "net_sales"],
         "item_gross_sales": [
             "item_gross_sales",
             "gross sales",
@@ -90,6 +91,26 @@ def _coerce_sales(df: pd.DataFrame) -> pd.DataFrame:
         )
     df["item_gross_sales"] = (
         pd.to_numeric(df["item_gross_sales"], errors="coerce").fillna(0)
+    )
+    return df
+
+
+def _coerce_net_sales(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensure item_net_sales is numeric when present."""
+    df = df.copy()
+    if "item_net_sales" not in df.columns:
+        return df
+
+    if df["item_net_sales"].dtype == object:
+        df["item_net_sales"] = (
+            df["item_net_sales"]
+            .astype(str)
+            .str.replace("$", "", regex=False)
+            .str.replace(",", "", regex=False)
+        )
+
+    df["item_net_sales"] = (
+        pd.to_numeric(df["item_net_sales"], errors="coerce").fillna(0)
     )
     return df
 
@@ -172,6 +193,33 @@ def _compute_category_mix(df: pd.DataFrame) -> pd.DataFrame:
             category_mix["total_sales"] / total_sales
         )
     category_mix = category_mix.sort_values("total_sales", ascending=False)
+    return category_mix
+
+
+def _compute_category_net_mix(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute category-level net sales mix for a given window."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["category_name", "total_net_sales", "category_sales_pct_of_total"]
+        )
+
+    if "item_net_sales" not in df.columns:
+        raise ValueError("Missing required column: item_net_sales")
+
+    category_mix = (
+        df.groupby("category_name", dropna=False)["item_net_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_net_sales": "total_net_sales"})
+    )
+    total_sales = category_mix["total_net_sales"].sum()
+    if total_sales == 0:
+        category_mix["category_sales_pct_of_total"] = 0.0
+    else:
+        category_mix["category_sales_pct_of_total"] = (
+            category_mix["total_net_sales"] / total_sales
+        )
+    category_mix = category_mix.sort_values("total_net_sales", ascending=False)
     return category_mix
 
 
@@ -1104,6 +1152,7 @@ def main() -> None:
     df = df.dropna(subset=["order_datetime"])
 
     df = _coerce_sales(df)
+    df = _coerce_net_sales(df)
     df = _filter_refunds(df)
     df = _filter_non_product_items(df)
     df = _assign_channel(df)
@@ -1207,6 +1256,7 @@ def main() -> None:
         df_last_3_months
     )
     global_category = _compute_category_mix(df)
+    global_category_net = _compute_category_net_mix(df) if "item_net_sales" in df.columns else None
     global_product = _compute_product_mix(df)
     global_channel = _compute_channel_mix(channel_global)
     global_in_person = _compute_in_person_mix(channel_global)
@@ -1281,6 +1331,8 @@ def main() -> None:
         processed_dir / "last_3_months_top_25_products_with_other.csv", index=False
     )
     global_category.to_csv(processed_dir / "global_category_mix.csv", index=False)
+    if global_category_net is not None:
+        global_category_net.to_csv(processed_dir / "global_category_mix_net.csv", index=False)
     global_product.to_csv(processed_dir / "global_product_mix.csv", index=False)
     last_month_channel.to_csv(
         processed_dir / "last_month_channel_mix.csv", index=False

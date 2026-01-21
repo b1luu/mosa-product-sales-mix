@@ -95,6 +95,7 @@ python3 src/generate_figures.py
 
 ## Output Schema
 - Category mix files: `category_name`, `total_sales`, `category_sales_pct_of_total`
+- Category net mix files: `category_name`, `total_net_sales`, `category_sales_pct_of_total`
 - Product mix files: `category_name`, `item_name`, `total_sales`, `product_sales_pct_of_category`, `product_sales_pct_of_total`
 - Tea base mix files: `tea_base`, `total_sales`, `tea_base_sales_pct_of_total`
 - Milk type mix files: `milk_type`, `total_sales`, `milk_type_sales_pct_of_total`
