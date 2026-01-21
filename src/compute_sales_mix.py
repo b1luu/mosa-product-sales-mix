@@ -24,6 +24,7 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         "item_name": ["item_name", "item", "item name"],
         "quantity": ["quantity", "qty"],
         "modifiers_applied": ["modifiers applied", "modifier", "modifiers"],
+        "source": ["source", "order source", "fulfillment source"],
         "item_gross_sales": [
             "item_gross_sales",
             "gross sales",
@@ -179,24 +180,33 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     columns = {col.strip().lower(): col for col in df.columns}
     channel_col = columns.get("channel")
+    source_col = columns.get("source")
     notes_col = columns.get("notes")
 
     notes = df[notes_col].astype(str) if notes_col else pd.Series("", index=df.index)
-    channel = (
-        df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
-    )
+    channel = df[channel_col].astype(str) if channel_col else pd.Series("", index=df.index)
+    source = df[source_col].astype(str) if source_col else pd.Series("", index=df.index)
 
     # Priority: HP tags first, then delivery platforms, otherwise in-person.
     hungry_panda = notes.str.contains("|".join(KEEP_REFUND_PATTERNS), case=False, na=False)
-    doordash = channel.str.contains("doordash", case=False, na=False)
-    ubereats = channel.str.contains("uber", case=False, na=False)
-    square_online = channel.str.contains("square online|online", case=False, na=False)
+    doordash = channel.str.contains("doordash", case=False, na=False) | source.str.contains(
+        "doordash", case=False, na=False
+    )
+    ubereats = channel.str.contains("uber", case=False, na=False) | source.str.contains(
+        "uber", case=False, na=False
+    )
+    square_online = channel.str.contains(
+        "square online|online", case=False, na=False
+    ) | source.str.contains("square online|online", case=False, na=False)
+    source_kiosk = source.str.contains("kiosk", case=False, na=False)
+    source_register = source.str.contains("register", case=False, na=False)
 
     channel_group = pd.Series("In Person", index=df.index)
     channel_group = channel_group.mask(hungry_panda, "Hungry Panda")
     channel_group = channel_group.mask(doordash, "DoorDash")
     channel_group = channel_group.mask(ubereats, "Uber Eats")
     channel_group = channel_group.mask(square_online, "Square Online")
+    channel_group = channel_group.mask(source_kiosk | source_register, "In Person")
 
     other_mask = (
         ~hungry_panda & ~doordash & ~ubereats & ~square_online
@@ -207,8 +217,10 @@ def _assign_channel(df: pd.DataFrame) -> pd.DataFrame:
 
     # Split in-person orders into kiosk vs counter.
     in_person_channel = pd.Series("Counter", index=df.index)
-    kiosk_mask = channel.str.contains("kiosk", case=False, na=False)
+    kiosk_mask = channel.str.contains("kiosk", case=False, na=False) | source_kiosk
+    register_mask = source_register
     in_person_channel = in_person_channel.mask(kiosk_mask, "Kiosk")
+    in_person_channel = in_person_channel.mask(register_mask, "Counter")
     in_person_channel = in_person_channel.where(channel_group == "In Person", "")
 
     df["channel_group"] = channel_group
@@ -1069,6 +1081,7 @@ def main() -> None:
     """Run sales mix computation for last month and last 3 months."""
     base_dir = Path(__file__).resolve().parents[1]
     raw_dir = base_dir / "data" / "raw"
+    private_dir = base_dir / "data" / "private"
     processed_dir = base_dir / "data" / "processed"
     processed_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1076,6 +1089,13 @@ def main() -> None:
     df = load_square_exports(raw_dir)
     df = _normalize_columns(df)
     df = _build_order_datetime(df)
+
+    channel_df = None
+    channel_source_path = private_dir / "channelmix-raw.csv"
+    if channel_source_path.exists():
+        channel_df = pd.read_csv(channel_source_path)
+        channel_df = _normalize_columns(channel_df)
+        channel_df = _build_order_datetime(channel_df)
 
     required_cols = {
         "order_id",
@@ -1105,6 +1125,12 @@ def main() -> None:
     df = _assign_channel(df)
     df = _assign_tea_base(df)
     df = _assign_milk_type(df)
+
+    if channel_df is not None:
+        channel_df = _coerce_sales(channel_df)
+        channel_df = _filter_refunds(channel_df)
+        channel_df = _filter_non_product_items(channel_df)
+        channel_df = _assign_channel(channel_df)
 
     if df.empty:
         print("Warning: no valid rows after cleaning; exiting.")
@@ -1141,6 +1167,20 @@ def main() -> None:
         & (df["order_datetime"] <= last_month_end)
     ]
 
+    channel_last_month = df_last_month
+    channel_last_3_months = df_last_3_months
+    channel_global = df
+    if channel_df is not None:
+        channel_last_month = channel_df[
+            (channel_df["order_datetime"] >= last_month_start)
+            & (channel_df["order_datetime"] <= last_month_end)
+        ]
+        channel_last_3_months = channel_df[
+            (channel_df["order_datetime"] >= last_3_start)
+            & (channel_df["order_datetime"] <= last_month_end)
+        ]
+        channel_global = channel_df
+
     if not df_last_3_months.empty:
         min_3_months = df_last_3_months["order_datetime"].min()
         if min_3_months >= last_month_start:
@@ -1157,8 +1197,8 @@ def main() -> None:
     last_month_category = _compute_category_mix(df_last_month)
     last_month_product = _compute_product_mix(df_last_month)
     last_month_top25_products = _compute_top_products_with_other(df_last_month, top_n=24)
-    last_month_channel = _compute_channel_mix(df_last_month)
-    last_month_in_person = _compute_in_person_mix(df_last_month)
+    last_month_channel = _compute_channel_mix(channel_last_month)
+    last_month_in_person = _compute_in_person_mix(channel_last_month)
     last_month_tea_base = _compute_tea_base_mix(df_last_month)
     last_month_milk_type = _compute_milk_type_mix(df_last_month)
     last_month_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_month)
@@ -1170,8 +1210,8 @@ def main() -> None:
     last_3_category = _compute_category_mix(df_last_3_months)
     last_3_product = _compute_product_mix(df_last_3_months)
     last_3_top25_products = _compute_top_products_with_other(df_last_3_months, top_n=24)
-    last_3_channel = _compute_channel_mix(df_last_3_months)
-    last_3_in_person = _compute_in_person_mix(df_last_3_months)
+    last_3_channel = _compute_channel_mix(channel_last_3_months)
+    last_3_in_person = _compute_in_person_mix(channel_last_3_months)
     last_3_tea_base = _compute_tea_base_mix(df_last_3_months)
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
@@ -1184,8 +1224,8 @@ def main() -> None:
     )
     global_category = _compute_category_mix(df)
     global_product = _compute_product_mix(df)
-    global_channel = _compute_channel_mix(df)
-    global_in_person = _compute_in_person_mix(df)
+    global_channel = _compute_channel_mix(channel_global)
+    global_in_person = _compute_in_person_mix(channel_global)
     global_tea_base = _compute_tea_base_mix(df)
     global_milk_type = _compute_milk_type_mix(df)
     global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)

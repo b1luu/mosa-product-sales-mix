@@ -113,6 +113,7 @@ python3 src/generate_figures.py
 - A global (all data) sales mix is also generated.
 - Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed. Valid Hungry Panda refunds are treated as positive sales.
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
+- Channel mix uses `data/private/channelmix-raw.csv` when available to map `Source` values (Register, Kiosk, Square Online) more accurately than the standard export.
 - Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
