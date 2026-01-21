@@ -220,6 +220,55 @@ def generate_top_products_figure(
     return output_path
 
 
+def generate_top_products_with_other_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a horizontal bar chart for top products with Other."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed top products is empty; no figure generated.")
+
+    df = df.sort_values("total_sales", ascending=True)
+    df["label"] = df["item_name"].fillna("Unknown Item")
+
+    fig_height = max(4, min(12, 0.4 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["label"], df["total_sales"], color="#4B7B9B")
+    ax.set_title(title, pad=4)
+    ax.set_xlabel("Total Sales")
+    ax.set_ylabel("Product")
+
+    ticks = ax.get_xticks()
+    ax.set_xticklabels([_format_currency(tick) for tick in ticks])
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    ax.bar_label(bars, labels=[_format_currency(v) for v in df["total_sales"]], padding=3, fontsize=8)
+    ax.set_xlim(0, df["total_sales"].max() * 1.2)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "items"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Category mix figures ---
 def generate_category_mix_figure(
     base_dir: Path,
@@ -963,6 +1012,12 @@ def main() -> None:
         "Top 10 Products (Last Month)",
         top_n=10,
     )
+    top_products_25_output = generate_top_products_with_other_figure(
+        base_dir,
+        "last_month_top_25_products_with_other.csv",
+        "last_month_top_25_products_with_other.png",
+        "Top 25 Products (Last Month)",
+    )
     category_output = generate_category_mix_figure(
         base_dir,
         "last_month_category_mix.csv",
@@ -1249,6 +1304,7 @@ def main() -> None:
     print(f"Saved figure: {last_month_output}")
     print(f"Saved figure: {last_3_months_output}")
     print(f"Saved figure: {top_products_output}")
+    print(f"Saved figure: {top_products_25_output}")
     print(f"Saved figure: {category_output}")
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {category_3_months_output}")

@@ -607,6 +607,44 @@ def _compute_product_mix(df: pd.DataFrame) -> pd.DataFrame:
     return product_mix
 
 
+def _compute_top_products_with_other(
+    df: pd.DataFrame, top_n: int = 24
+) -> pd.DataFrame:
+    """Compute top-N products with an 'Other' bucket for the remainder."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["item_name", "total_sales", "product_sales_pct_of_total"]
+        )
+
+    if "item_name" not in df.columns:
+        raise ValueError("Missing required column: item_name")
+
+    totals = (
+        df.groupby("item_name", dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    totals = totals.sort_values("total_sales", ascending=False)
+    top = totals.head(top_n).copy()
+    other_total = totals["total_sales"].sum() - top["total_sales"].sum()
+    if other_total > 0:
+        top = pd.concat(
+            [
+                top,
+                pd.DataFrame(
+                    [{"item_name": "Other", "total_sales": other_total}]
+                ),
+            ],
+            ignore_index=True,
+        )
+    total_sales = top["total_sales"].sum()
+    top["product_sales_pct_of_total"] = (
+        top["total_sales"] / total_sales if total_sales else 0.0
+    )
+    return top
+
+
 def _compute_hourly_sales(df: pd.DataFrame) -> pd.DataFrame:
     """Compute hourly sales distribution for peak-hour analysis."""
     if df.empty:
@@ -1118,6 +1156,7 @@ def main() -> None:
 
     last_month_category = _compute_category_mix(df_last_month)
     last_month_product = _compute_product_mix(df_last_month)
+    last_month_top25_products = _compute_top_products_with_other(df_last_month, top_n=24)
     last_month_channel = _compute_channel_mix(df_last_month)
     last_month_in_person = _compute_in_person_mix(df_last_month)
     last_month_tea_base = _compute_tea_base_mix(df_last_month)
@@ -1203,6 +1242,9 @@ def main() -> None:
     )
     last_month_product.to_csv(
         processed_dir / "last_month_product_mix.csv", index=False
+    )
+    last_month_top25_products.to_csv(
+        processed_dir / "last_month_top_25_products_with_other.csv", index=False
     )
     last_3_category.to_csv(
         processed_dir / "last_3_months_category_mix.csv", index=False
