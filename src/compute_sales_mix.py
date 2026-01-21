@@ -825,6 +825,7 @@ def _extract_toppings(modifiers: pd.Series, item_names: pd.Series) -> pd.Series:
     normalized = normalized.str.replace(
         r"Brown Sugar.*Jelly", "HK Jelly", regex=True
     )
+    normalized = normalized.str.replace(r"HK Jelly\)+", "HK Jelly", regex=True)
     normalized = normalized.str.replace(
         "Hún-Kué (Tapioca Jelly)", "HK Jelly", regex=False
     )
@@ -844,6 +845,15 @@ def _extract_toppings(modifiers: pd.Series, item_names: pd.Series) -> pd.Series:
         extras.extend(["Tea Jelly"] * has_grapefruit_bloom.sum())
     if has_tgy_special.any():
         extras.extend(["HK Jelly"] * has_tgy_special.sum())
+    has_genmai_matcha_jelly = item_lower.str.contains("genmai matcha", na=False)
+    if has_genmai_matcha_jelly.any():
+        extras.extend(["Daily Jelly (Matcha Jelly)"] * has_genmai_matcha_jelly.sum())
+    has_pistachio_mist = item_lower.str.contains("pistachio mist", na=False)
+    if has_pistachio_mist.any():
+        extras.extend(["Pistachio Foam"] * has_pistachio_mist.sum())
+    has_brown_sugar_mist = item_lower.str.contains("brown sugar mist", na=False)
+    if has_brown_sugar_mist.any():
+        extras.extend(["Cream Foam"] * has_brown_sugar_mist.sum())
     if extras:
         normalized = pd.concat([normalized, pd.Series(extras)], ignore_index=True)
 
