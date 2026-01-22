@@ -1239,18 +1239,16 @@ def main() -> None:
         y_label="Drink Type",
         bar_color="#5A8F3A",
     )
-    milk_type_last_3_months_output = generate_channel_mix_figure(
+    milk_type_last_3_months_output = generate_mix_sales_with_pct_figure(
         base_dir,
         "last_3_months_milk_type_mix.csv",
         "last_3_months_milk_type_mix.png",
         "Milk Tea vs Au Lait (Oct 1 - Dec 31)",
         "milk_type",
+        "total_sales",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
-        color_map={
-            "Milk Tea": "#5A8F3A",
-            "Au Lait": "#3E6B2C",
-        },
+        bar_color="#5A8F3A",
     )
     milk_type_global_output = generate_channel_mix_figure(
         base_dir,
@@ -1269,7 +1267,7 @@ def main() -> None:
         base_dir,
         "last_month_fresh_fruit_tea_base_mix.csv",
         "last_month_fresh_fruit_tea_base_mix.png",
-        "Fresh Fruit Tea Base Mix (Dec 2025)",
+        "Fresh Fruit Tea Base Mix (Fresh Fruit Tea only, Dec 2025)",
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
@@ -1282,7 +1280,7 @@ def main() -> None:
         base_dir,
         "last_3_months_fresh_fruit_tea_base_mix.csv",
         "last_3_months_fresh_fruit_tea_base_mix.png",
-        "Fresh Fruit Tea Base Mix (Oct 1 - Dec 31)",
+        "Fresh Fruit Tea Base Mix (Fresh Fruit Tea only, Oct 1 - Dec 31)",
         "tea_base",
         "total_sales",
         "tea_base_sales_pct_of_total",
@@ -1293,7 +1291,7 @@ def main() -> None:
         base_dir,
         "global_fresh_fruit_tea_base_mix.csv",
         "global_fresh_fruit_tea_base_mix.png",
-        "Fresh Fruit Tea Base Mix (All Data)",
+        "Fresh Fruit Tea Base Mix (Fresh Fruit Tea only, All Data)",
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
@@ -1424,9 +1422,9 @@ def main() -> None:
     )
     category_global_output = generate_category_mix_figure(
         base_dir,
-        "global_category_mix.csv",
+        "last_3_months_category_mix.csv",
         "global_category_mix.png",
-        "Category Mix (All Data)",
+        "Category Mix (Oct 1 - Dec 31)",
         value_column="category_sales_pct_of_total",
         sales_column="total_sales",
         x_label="Total Sales",

@@ -16,6 +16,11 @@
 - Sugar/ice preference mix.
 - Peak hours and anomaly detection.
 
+## Notes on Milk Tea vs Au Lait Mix
+- The mix is computed from line-item sales by summing `item_gross_sales` for items labeled as Milk Tea or Au Lait.
+- Labels are assigned primarily from `category_name`; when categories are missing those terms, we explicitly include known Mosa Signature items: TGY Special as Milk Tea and Taiwanese Retro as Au Lait.
+- Other Mosa Signature drinks remain excluded unless their category explicitly indicates Milk Tea or Au Lait.
+
 ## Limitations
 - Coverage bias: some fields (customer ID, modifiers) are incomplete; analyses using those fields apply to known records only.
 - Rule-based mapping: tea base classification depends on menu naming consistency and needs updates as menu items change.

@@ -352,6 +352,7 @@ def _assign_milk_type(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     columns = {col.strip().lower(): col for col in df.columns}
     category_col = columns.get("category_name")
+    item_col = columns.get("item_name")
     if not category_col:
         df["milk_type"] = "Unknown"
         return df
@@ -364,6 +365,17 @@ def _assign_milk_type(df: pd.DataFrame) -> pd.DataFrame:
     milk_type = milk_type.mask(
         category_text.str.contains("au lait", na=False), "Au Lait"
     )
+    if item_col:
+        item_text = df[item_col].astype(str).str.lower()
+        milk_type = milk_type.mask(
+            (milk_type == "Unknown") & item_text.str.contains("tgy special", na=False),
+            "Milk Tea",
+        )
+        milk_type = milk_type.mask(
+            (milk_type == "Unknown")
+            & item_text.str.contains("taiwanese retro", na=False),
+            "Au Lait",
+        )
     df["milk_type"] = milk_type
     return df
 
