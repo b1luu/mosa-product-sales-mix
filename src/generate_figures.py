@@ -597,6 +597,56 @@ def generate_channel_mix_figure(
     return output_path
 
 
+def generate_mix_sales_with_pct_figure(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    label_column: str,
+    sales_column: str,
+    pct_column: str,
+    y_label: str,
+    bar_color: str,
+) -> Path:
+    """Create a horizontal bar chart with sales axis and percent labels."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed mix is empty; no figure generated.")
+
+    df = df.sort_values(sales_column, ascending=True)
+    df["label"] = df[label_column].fillna("Unknown")
+
+    fig_height = max(3.5, min(8, 0.6 * len(df)))
+    fig, ax = plt.subplots(figsize=(8, fig_height))
+    bars = ax.barh(df["label"], df[sales_column], color=bar_color)
+    ax.set_title(title, pad=4)
+    ax.set_xlabel("Total Sales")
+    ax.set_ylabel(y_label)
+
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    labels = [
+        f"{_format_currency(sales)} ({_format_pct(pct)})"
+        for sales, pct in zip(df[sales_column], df[pct_column])
+    ]
+    ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
+    ax.set_xlim(0, df[sales_column].max() * 1.2)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "drink_share"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 def generate_tea_base_mix_figure(
     base_dir: Path,
     processed_name: str,
@@ -1178,18 +1228,16 @@ def main() -> None:
             "Counter": "#4F5A3F",
         },
     )
-    milk_type_last_month_output = generate_channel_mix_figure(
+    milk_type_last_month_output = generate_mix_sales_with_pct_figure(
         base_dir,
         "last_month_milk_type_mix.csv",
         "last_month_milk_type_mix.png",
         "Milk Tea vs Au Lait (Dec 2025)",
         "milk_type",
+        "total_sales",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
-        color_map={
-            "Milk Tea": "#5A8F3A",
-            "Au Lait": "#3E6B2C",
-        },
+        bar_color="#5A8F3A",
     )
     milk_type_last_3_months_output = generate_channel_mix_figure(
         base_dir,
@@ -1230,18 +1278,16 @@ def main() -> None:
             "Four Seasons": "#3E6B2C",
         },
     )
-    fresh_fruit_tea_base_last_3_months_output = generate_channel_mix_figure(
+    fresh_fruit_tea_base_last_3_months_output = generate_mix_sales_with_pct_figure(
         base_dir,
         "last_3_months_fresh_fruit_tea_base_mix.csv",
         "last_3_months_fresh_fruit_tea_base_mix.png",
         "Fresh Fruit Tea Base Mix (Oct 1 - Dec 31)",
         "tea_base",
+        "total_sales",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
-        color_map={
-            "Green": "#5A8F3A",
-            "Four Seasons": "#3E6B2C",
-        },
+        bar_color="#3E6B2C",
     )
     fresh_fruit_tea_base_global_output = generate_channel_mix_figure(
         base_dir,
