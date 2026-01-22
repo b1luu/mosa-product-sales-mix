@@ -856,7 +856,7 @@ def generate_pct_mix_figure(
         ax.text(
             0.98,
             0.98,
-            f"Last 3 Months Orders: {order_count:,}",
+            f"Oct 1 - Dec 31 Orders: {order_count:,}",
             transform=ax.transAxes,
             ha="right",
             va="top",
@@ -1071,7 +1071,7 @@ def main() -> None:
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_product_mix.png",
-        "Last 3 Months Product Mix",
+        "Product Mix (Oct 1 - Dec 31)",
     )
     top_products_output = generate_top_products_figure(
         base_dir,
@@ -1084,7 +1084,7 @@ def main() -> None:
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_top_10_products_sales.png",
-        "Top 10 Products by Sales (Last 3 Months)",
+        "Top 10 Products by Sales (Oct 1 - Dec 31)",
         top_n=10,
     )
     top_products_25_output = generate_top_products_with_other_figure(
@@ -1097,7 +1097,7 @@ def main() -> None:
         base_dir,
         "last_3_months_top_25_products_with_other.csv",
         "last_3_months_top_25_products_with_other.png",
-        "Top 25 Products (Last 3 Months)",
+        "Top 25 Products (Oct 1 - Dec 31)",
     )
     category_output = generate_category_mix_figure(
         base_dir,
@@ -1109,14 +1109,14 @@ def main() -> None:
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_top_10_products.png",
-        "Top 10 Products (Last 3 Months)",
+        "Top 10 Products (Oct 1 - Dec 31)",
         top_n=10,
     )
     category_3_months_output = generate_category_mix_figure(
         base_dir,
         "last_3_months_category_mix.csv",
         "last_3_months_category_mix.png",
-        "Category Mix (Last 3 Months)",
+        "Category Mix (Oct 1 - Dec 31)",
     )
     pareto_last_month_output = generate_pareto_products_figure(
         base_dir,
@@ -1134,7 +1134,7 @@ def main() -> None:
         base_dir,
         "last_3_months_category_mix.csv",
         "last_3_months_category_share.png",
-        "Category Share (Last 3 Months)",
+        "Category Share (Oct 1 - Dec 31)",
     )
     channel_last_month_output = generate_channel_mix_figure(
         base_dir,
@@ -1148,7 +1148,7 @@ def main() -> None:
         base_dir,
         "last_3_months_channel_mix.csv",
         "last_3_months_channel_mix.png",
-        "Channel Mix (Last 3 Months)",
+        "Channel Mix (Oct 1 - Dec 31)",
         "channel_group",
         "channel_sales_pct_of_total",
     )
@@ -1169,7 +1169,7 @@ def main() -> None:
         base_dir,
         "last_3_months_in_person_mix.csv",
         "last_3_months_in_person_mix.png",
-        "In-Person Mix (Last 3 Months)",
+        "In-Person Mix (Oct 1 - Dec 31)",
         "in_person_channel",
         "in_person_sales_pct_of_total",
         y_label="In-Person Channel",
@@ -1195,7 +1195,7 @@ def main() -> None:
         base_dir,
         "last_3_months_milk_type_mix.csv",
         "last_3_months_milk_type_mix.png",
-        "Milk Tea vs Au Lait (Last 3 Months)",
+        "Milk Tea vs Au Lait (Oct 1 - Dec 31)",
         "milk_type",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
@@ -1234,7 +1234,7 @@ def main() -> None:
         base_dir,
         "last_3_months_fresh_fruit_tea_base_mix.csv",
         "last_3_months_fresh_fruit_tea_base_mix.png",
-        "Fresh Fruit Tea Base Mix (Last 3 Months)",
+        "Fresh Fruit Tea Base Mix (Oct 1 - Dec 31)",
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
@@ -1266,7 +1266,7 @@ def main() -> None:
         base_dir,
         "last_3_months_top_item_by_tea_base.csv",
         "last_3_months_top_item_by_tea_base.png",
-        "Top Item by Tea Base (Last 3 Months)",
+        "Top Item by Tea Base (Oct 1 - Dec 31)",
     )
     top_item_by_base_global_output = generate_top_item_by_tea_base_figure(
         base_dir,
@@ -1321,7 +1321,7 @@ def main() -> None:
         base_dir,
         "last_3_months_topping_popularity.csv",
         "last_3_months_topping_popularity.png",
-        "Top 10 Toppings (Last 3 Months)",
+        "Top 10 Toppings (Oct 1 - Dec 31)",
         top_n=10,
     )
     tea_base_last_month_output = generate_tea_base_mix_figure(
@@ -1334,7 +1334,7 @@ def main() -> None:
         base_dir,
         "last_3_months_tea_base_mix.csv",
         "last_3_months_tea_base_mix.png",
-        "Tea Base Mix (Last 3 Months)",
+        "Tea Base Mix (Oct 1 - Dec 31)",
     )
     tea_base_global_output = generate_tea_base_mix_figure(
         base_dir,
