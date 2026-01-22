@@ -111,6 +111,7 @@ python3 src/generate_figures.py
 
 ## Notes
 - Baselines default to last full month and last 3 full months.
+- The “last 3 months” window is Oct 1 to Dec 31 and is used for higher statistical stability.
 - A global (all data) sales mix is also generated.
 - Refund handling: rows with `Event Type` = `Refund` are excluded unless `Notes` indicates a valid Hungry Panda sale (`Hp`, `HP`, `Hp ####`, `Hp Order`, `Panda`, `Pandaa`). Rows with `Notes` containing `Canceled Order` are always removed. Valid Hungry Panda refunds are treated as positive sales.
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.

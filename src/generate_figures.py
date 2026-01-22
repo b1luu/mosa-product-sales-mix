@@ -1065,7 +1065,7 @@ def main() -> None:
         base_dir,
         "last_month_product_mix.csv",
         "last_month_product_mix.png",
-        "Last Month Product Mix",
+        "Product Mix (Dec 2025)",
     )
     last_3_months_product_mix_output = generate_product_mix_figure(
         base_dir,
@@ -1077,7 +1077,7 @@ def main() -> None:
         base_dir,
         "last_month_product_mix.csv",
         "last_month_top_10_products.png",
-        "Top 10 Products (Last Month)",
+        "Top 10 Products (Dec 2025)",
         top_n=10,
     )
     top_products_sales_last_3_months_output = generate_top_products_sales_figure(
@@ -1091,7 +1091,7 @@ def main() -> None:
         base_dir,
         "last_month_top_25_products_with_other.csv",
         "last_month_top_25_products_with_other.png",
-        "Top 25 Products (Last Month)",
+        "Top 25 Products (Dec 2025)",
     )
     top_products_25_with_other_output = generate_top_products_with_other_figure(
         base_dir,
@@ -1103,7 +1103,7 @@ def main() -> None:
         base_dir,
         "last_month_category_mix.csv",
         "last_month_category_mix.png",
-        "Category Mix (Last Month)",
+        "Category Mix (Dec 2025)",
     )
     top_products_3_months_output = generate_top_products_figure(
         base_dir,
@@ -1122,13 +1122,13 @@ def main() -> None:
         base_dir,
         "last_month_product_mix.csv",
         "last_month_pareto.png",
-        "Pareto: Product Mix (Last Month)",
+        "Pareto: Product Mix (Dec 2025)",
     )
     donut_last_month_output = generate_category_share_donut(
         base_dir,
         "last_month_category_mix.csv",
         "last_month_category_share.png",
-        "Category Share (Last Month)",
+        "Category Share (Dec 2025)",
     )
     donut_last_3_months_output = generate_category_share_donut(
         base_dir,
@@ -1140,7 +1140,7 @@ def main() -> None:
         base_dir,
         "last_month_channel_mix.csv",
         "last_month_channel_mix.png",
-        "Channel Mix (Last Month)",
+        "Channel Mix (Dec 2025)",
         "channel_group",
         "channel_sales_pct_of_total",
     )
@@ -1156,7 +1156,7 @@ def main() -> None:
         base_dir,
         "last_month_in_person_mix.csv",
         "last_month_in_person_mix.png",
-        "In-Person Mix (Last Month)",
+        "In-Person Mix (Dec 2025)",
         "in_person_channel",
         "in_person_sales_pct_of_total",
         y_label="In-Person Channel",
@@ -1182,7 +1182,7 @@ def main() -> None:
         base_dir,
         "last_month_milk_type_mix.csv",
         "last_month_milk_type_mix.png",
-        "Milk Tea vs Au Lait (Last Month)",
+        "Milk Tea vs Au Lait (Dec 2025)",
         "milk_type",
         "milk_type_sales_pct_of_total",
         y_label="Drink Type",
@@ -1221,7 +1221,7 @@ def main() -> None:
         base_dir,
         "last_month_fresh_fruit_tea_base_mix.csv",
         "last_month_fresh_fruit_tea_base_mix.png",
-        "Fresh Fruit Tea Base Mix (Last Month)",
+        "Fresh Fruit Tea Base Mix (Dec 2025)",
         "tea_base",
         "tea_base_sales_pct_of_total",
         y_label="Tea Base",
@@ -1260,7 +1260,7 @@ def main() -> None:
         base_dir,
         "last_month_top_item_by_tea_base.csv",
         "last_month_top_item_by_tea_base.png",
-        "Top Item by Tea Base (Last Month)",
+        "Top Item by Tea Base (Dec 2025)",
     )
     top_item_by_base_last_3_months_output = generate_top_item_by_tea_base_figure(
         base_dir,
@@ -1328,7 +1328,7 @@ def main() -> None:
         base_dir,
         "last_month_tea_base_mix.csv",
         "last_month_tea_base_mix.png",
-        "Tea Base Mix (Last Month)",
+        "Tea Base Mix (Dec 2025)",
     )
     tea_base_last_3_months_output = generate_tea_base_mix_figure(
         base_dir,
@@ -1346,27 +1346,27 @@ def main() -> None:
         base_dir,
         "last_month_hourly_sales.csv",
         "last_month_peak_hours.png",
-        "Peak Hours (Last Month)",
+        "Peak Hours (Dec 2025)",
     )
     peak_hours_weekday_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_weekday_hourly_sales.csv",
         "last_month_peak_hours_weekday.png",
-        "Peak Hours (Weekdays, Last Month)",
+        "Peak Hours (Weekdays, Dec 2025)",
         bar_color="#6E7656",
     )
     peak_hours_weekend_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_weekend_hourly_sales.csv",
         "last_month_peak_hours_weekend.png",
-        "Peak Hours (Weekends, Last Month)",
+        "Peak Hours (Weekends, Dec 2025)",
         bar_color="#4F5A3F",
     )
     featured_item_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_featured_item_hourly_sales.csv",
         "last_month_tgy_special_by_hour.png",
-        "TGY Special by Hour (Last Month)",
+        "TGY Special by Hour (Dec 2025)",
         y_label="Percent of Item Sales",
     )
     top_products_global_output = generate_top_products_figure(
