@@ -1219,6 +1219,101 @@ def generate_topping_popularity_figure(
     return output_path
 
 
+def generate_tea_base_by_drink_category_stacked(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a stacked bar chart for tea base share by drink category."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed tea base by category is empty; no figure generated.")
+
+    base_order = ["Four Seasons", "Green"]
+    category_order = [
+        "Fresh Fruit Tea",
+        "Milk Tea",
+        "Au Lait",
+        "Brewed Tea",
+        "Matcha",
+        "Smoothie/Slush",
+        "Other",
+    ]
+    df["tea_base"] = df["tea_base"].fillna("Unknown")
+    df["drink_category"] = df["drink_category"].fillna("Other")
+
+    pivot = (
+        df.pivot_table(
+            index="tea_base",
+            columns="drink_category",
+            values="share_of_tea_base",
+            aggfunc="sum",
+        )
+        .fillna(0.0)
+    )
+
+    pivot = pivot.reindex(index=base_order, fill_value=0.0)
+    pivot = pivot.reindex(columns=category_order, fill_value=0.0)
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    bottom = pd.Series(0.0, index=pivot.index)
+    colors = {
+        "Fresh Fruit Tea": "#3E6B2C",
+        "Milk Tea": "#5A8F3A",
+        "Au Lait": "#7E9F5D",
+        "Brewed Tea": "#2A6F8F",
+        "Matcha": "#6E7656",
+        "Smoothie/Slush": "#C0A16B",
+        "Other": "#9CA3AF",
+    }
+
+    for category in pivot.columns:
+        values = pivot[category].values
+        ax.bar(
+            pivot.index,
+            values,
+            bottom=bottom,
+            label=category,
+            color=colors.get(category, "#9CA3AF"),
+        )
+        bottom += values
+
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Tea Base")
+    ax.set_ylabel("Share of Tea Base Sales")
+    ticks = ax.get_yticks()
+    ax.set_yticklabels([_format_pct(tick) for tick in ticks])
+    ax.set_ylim(0, 1.0)
+    ax.legend(
+        title="Drink Category",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+    )
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "tea_base"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -1519,6 +1614,12 @@ def main() -> None:
         "global_tea_base_mix.png",
         "Tea Base Mix (All Data)",
     )
+    tea_base_by_category_last_3_months_output = generate_tea_base_by_drink_category_stacked(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_tea_base_by_drink_category.png",
+        "Tea Base Share by Drink Category (Oct 1 - Dec 31)",
+    )
     peak_hours_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_hourly_sales.csv",
@@ -1599,6 +1700,7 @@ def main() -> None:
     print(f"Saved figure: {tea_base_last_month_output}")
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")
+    print(f"Saved figure: {tea_base_by_category_last_3_months_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
     print(f"Saved figure: {peak_hours_weekend_last_month_output}")

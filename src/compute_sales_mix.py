@@ -380,6 +380,58 @@ def _assign_milk_type(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _assign_drink_category(df: pd.DataFrame) -> pd.DataFrame:
+    """Assign drink category labels from category or item names."""
+    df = df.copy()
+    columns = {col.strip().lower(): col for col in df.columns}
+    category_col = columns.get("category_name")
+    item_col = columns.get("item_name")
+
+    if not category_col and not item_col:
+        df["drink_category"] = "Other"
+        return df
+
+    category_text = (
+        df[category_col].astype(str).str.lower() if category_col else pd.Series("", index=df.index)
+    )
+    item_text = (
+        df[item_col].astype(str).str.lower() if item_col else pd.Series("", index=df.index)
+    )
+    combined = (category_text + " " + item_text).str.strip()
+
+    drink_category = pd.Series("Other", index=df.index)
+    drink_category = drink_category.mask(
+        combined.str.contains("fresh fruit tea|fruit tea", na=False)
+        & (drink_category == "Other"),
+        "Fresh Fruit Tea",
+    )
+    drink_category = drink_category.mask(
+        combined.str.contains("milk tea", na=False) & (drink_category == "Other"),
+        "Milk Tea",
+    )
+    drink_category = drink_category.mask(
+        combined.str.contains("au lait", na=False) & (drink_category == "Other"),
+        "Au Lait",
+    )
+    drink_category = drink_category.mask(
+        combined.str.contains("fresh brewed tea|brewed tea|tea", na=False)
+        & (drink_category == "Other"),
+        "Brewed Tea",
+    )
+    drink_category = drink_category.mask(
+        combined.str.contains("matcha", na=False) & (drink_category == "Other"),
+        "Matcha",
+    )
+    drink_category = drink_category.mask(
+        combined.str.contains("smoothie|slush|slushie", na=False)
+        & (drink_category == "Other"),
+        "Smoothie/Slush",
+    )
+
+    df["drink_category"] = drink_category
+    return df
+
+
 def _compute_channel_mix(df: pd.DataFrame) -> pd.DataFrame:
     """Compute channel-level sales mix for a given window."""
     if df.empty:
@@ -468,6 +520,52 @@ def _compute_milk_type_mix(df: pd.DataFrame) -> pd.DataFrame:
         mix["milk_type_sales_pct_of_total"] = mix["total_sales"] / total_sales
     mix = mix.sort_values("total_sales", ascending=False)
     return mix
+
+
+def _compute_tea_base_share_by_drink_category(
+    df: pd.DataFrame,
+    tea_bases: list[str] | None = None,
+) -> pd.DataFrame:
+    """Compute tea base share split by drink category."""
+    if df.empty:
+        return pd.DataFrame(
+            columns=["tea_base", "drink_category", "total_sales", "share_of_tea_base"]
+        )
+
+    if "tea_base" not in df.columns or "drink_category" not in df.columns:
+        raise ValueError("Missing required column: tea_base or drink_category")
+
+    base_df = df.copy()
+    if tea_bases:
+        base_df = base_df[base_df["tea_base"].isin(tea_bases)]
+
+    grouped = (
+        base_df.groupby(["tea_base", "drink_category"], dropna=False)["item_gross_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"item_gross_sales": "total_sales"})
+    )
+    if grouped.empty:
+        return pd.DataFrame(
+            columns=["tea_base", "drink_category", "total_sales", "share_of_tea_base"]
+        )
+
+    base_totals = (
+        grouped.groupby("tea_base", dropna=False)["total_sales"]
+        .sum()
+        .reset_index()
+        .rename(columns={"total_sales": "tea_base_total_sales"})
+    )
+    grouped = grouped.merge(base_totals, on="tea_base", how="left")
+    grouped["share_of_tea_base"] = grouped.apply(
+        lambda row: 0.0
+        if row["tea_base_total_sales"] == 0
+        else row["total_sales"] / row["tea_base_total_sales"],
+        axis=1,
+    )
+    grouped = grouped.drop(columns=["tea_base_total_sales"])
+    grouped = grouped.sort_values(["tea_base", "total_sales"], ascending=[True, False])
+    return grouped
 
 
 def _compute_fresh_fruit_tea_base_mix(df: pd.DataFrame) -> pd.DataFrame:
@@ -1170,6 +1268,7 @@ def main() -> None:
     df = _assign_channel(df)
     df = _assign_tea_base(df)
     df = _assign_milk_type(df)
+    df = _assign_drink_category(df)
 
     if channel_df is not None:
         channel_df = _coerce_sales(channel_df)
@@ -1261,6 +1360,10 @@ def main() -> None:
     last_3_milk_type = _compute_milk_type_mix(df_last_3_months)
     last_3_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df_last_3_months)
     last_3_top_item_by_tea_base = _compute_top_item_by_tea_base(df_last_3_months)
+    last_3_tea_base_by_category = _compute_tea_base_share_by_drink_category(
+        df_last_3_months,
+        tea_bases=["Four Seasons", "Green"],
+    )
     last_3_topping_popularity = _compute_topping_popularity(df_last_3_months)
     last_3_order_count = df_last_3_months["order_id"].nunique()
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
@@ -1276,6 +1379,10 @@ def main() -> None:
     global_milk_type = _compute_milk_type_mix(df)
     global_fresh_fruit_tea_base = _compute_fresh_fruit_tea_base_mix(df)
     global_top_item_by_tea_base = _compute_top_item_by_tea_base(df)
+    global_tea_base_by_category = _compute_tea_base_share_by_drink_category(
+        df,
+        tea_bases=["Four Seasons", "Green"],
+    )
     global_daily_sales = _compute_daily_sales(df)
     global_daily_sales_zscore = _compute_daily_sales_zscore(global_daily_sales)
     global_daily_sales_anomalies = _compute_daily_anomalies_by_threshold(
@@ -1383,6 +1490,9 @@ def main() -> None:
     last_3_top_item_by_tea_base.to_csv(
         processed_dir / "last_3_months_top_item_by_tea_base.csv", index=False
     )
+    last_3_tea_base_by_category.to_csv(
+        processed_dir / "last_3_months_tea_base_by_drink_category.csv", index=False
+    )
     last_3_topping_popularity.to_csv(
         processed_dir / "last_3_months_topping_popularity.csv", index=False
     )
@@ -1403,6 +1513,9 @@ def main() -> None:
     )
     global_top_item_by_tea_base.to_csv(
         processed_dir / "global_top_item_by_tea_base.csv", index=False
+    )
+    global_tea_base_by_category.to_csv(
+        processed_dir / "global_tea_base_by_drink_category.csv", index=False
     )
     global_daily_sales.to_csv(
         processed_dir / "global_daily_sales.csv", index=False
