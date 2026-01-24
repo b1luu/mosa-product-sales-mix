@@ -539,6 +539,8 @@ def generate_product_share_pie(
     processed_name: str,
     output_name: str,
     title: str,
+    top_n: int | None = None,
+    category_filter: str | None = None,
 ) -> Path:
     """Create a pie chart for product share of total sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -563,10 +565,41 @@ def generate_product_share_pie(
         .str.lower()
         .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
     ]
+    if category_filter:
+        df = df[
+            df["category_name"]
+            .astype(str)
+            .str.contains(category_filter, case=False, na=False)
+        ]
     if df.empty:
         raise ValueError("Processed product mix is empty after exclusions.")
 
-    df = df.sort_values("product_sales_pct_of_total", ascending=False)
+    df = df.sort_values("total_sales", ascending=False)
+    if top_n is not None:
+        top = df.head(top_n).copy()
+        other_total = df["total_sales"].sum() - top["total_sales"].sum()
+        if other_total > 0:
+            top = pd.concat(
+                [
+                    top,
+                    pd.DataFrame(
+                        [
+                            {
+                                "category_name": "Other",
+                                "item_name": "Other",
+                                "total_sales": other_total,
+                            }
+                        ]
+                    ),
+                ],
+                ignore_index=True,
+            )
+        df = top
+
+    total_sales = df["total_sales"].sum()
+    df["product_sales_pct_of_total"] = (
+        df["total_sales"] / total_sales if total_sales else 0.0
+    )
     df["item_label"] = df["item_name"].fillna("Unknown Item")
     df["category_label"] = df["category_name"].fillna("Uncategorized")
     duplicate_items = df["item_label"].duplicated(keep=False)
@@ -1252,6 +1285,15 @@ def main() -> None:
         "last_3_months_product_mix.csv",
         "last_3_months_product_share_pie.png",
         "Product Sales Share (Oct 1 - Dec 31)",
+        top_n=10,
+    )
+    fruit_tea_last_3_months_pie_output = generate_product_share_pie(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_fresh_fruit_tea_share_pie.png",
+        "Fresh Fruit Tea Product Share (Oct 1 - Dec 31)",
+        top_n=10,
+        category_filter="fresh fruit tea",
     )
     category_3_months_output = generate_category_mix_figure(
         base_dir,
@@ -1529,6 +1571,7 @@ def main() -> None:
     print(f"Saved figure: {category_output}")
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {product_share_last_3_months_pie_output}")
+    print(f"Saved figure: {fruit_tea_last_3_months_pie_output}")
     print(f"Saved figure: {category_3_months_output}")
     print(f"Saved figure: {pareto_last_month_output}")
     print(f"Saved figure: {donut_last_month_output}")
