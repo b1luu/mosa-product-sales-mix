@@ -534,6 +534,91 @@ def generate_category_share_donut(
     return output_path
 
 
+def generate_product_share_pie(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a pie chart for product share of total sales."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed product mix is empty; no figure generated.")
+
+    df = df[
+        ~df["item_name"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .str.contains("|".join(EXCLUDE_ITEM_PATTERNS), regex=True, na=False)
+    ]
+    if df.empty:
+        raise ValueError("Processed product mix is empty after exclusions.")
+
+    df = df.sort_values("product_sales_pct_of_total", ascending=False)
+    df["item_label"] = df["item_name"].fillna("Unknown Item")
+    df["category_label"] = df["category_name"].fillna("Uncategorized")
+    duplicate_items = df["item_label"].duplicated(keep=False)
+    df["label"] = df["item_label"]
+    df.loc[duplicate_items, "label"] = (
+        df.loc[duplicate_items, "item_label"]
+        + " ("
+        + df.loc[duplicate_items, "category_label"]
+        + ")"
+    )
+
+    labels = df["label"].tolist()
+    values = df["product_sales_pct_of_total"].tolist()
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    wedges, _, autotexts = ax.pie(
+        values,
+        labels=None,
+        autopct=lambda pct: f"{pct:.1f}%",
+        startangle=90,
+        counterclock=False,
+        wedgeprops={"edgecolor": "white"},
+        textprops={"fontsize": 8},
+        pctdistance=0.75,
+    )
+    ax.set_title(title, pad=8)
+    ax.axis("equal")
+
+    for text in autotexts:
+        text.set_fontweight("bold")
+        text.set_color("#1F2937")
+
+    ax.legend(
+        wedges,
+        labels,
+        title="Product",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+        fontsize=8,
+    )
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "items"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Channel mix figures ---
 def generate_channel_mix_figure(
     base_dir: Path,
@@ -1162,6 +1247,12 @@ def main() -> None:
         "Top 10 Products (Oct 1 - Dec 31)",
         top_n=10,
     )
+    product_share_last_3_months_pie_output = generate_product_share_pie(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_product_share_pie.png",
+        "Product Sales Share (Oct 1 - Dec 31)",
+    )
     category_3_months_output = generate_category_mix_figure(
         base_dir,
         "last_3_months_category_mix.csv",
@@ -1437,6 +1528,7 @@ def main() -> None:
     print(f"Saved figure: {top_products_25_with_other_output}")
     print(f"Saved figure: {category_output}")
     print(f"Saved figure: {top_products_3_months_output}")
+    print(f"Saved figure: {product_share_last_3_months_pie_output}")
     print(f"Saved figure: {category_3_months_output}")
     print(f"Saved figure: {pareto_last_month_output}")
     print(f"Saved figure: {donut_last_month_output}")
