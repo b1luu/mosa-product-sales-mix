@@ -1291,7 +1291,7 @@ def main() -> None:
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_fresh_fruit_tea_share_pie.png",
-        "Fresh Fruit Tea Product Share (Oct 1 - Dec 31)",
+        "Fresh Fruit Tea Sales Percentage by Product (Oct 1 - Dec 31)",
         top_n=10,
         category_filter="fresh fruit tea",
     )
