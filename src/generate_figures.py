@@ -659,7 +659,7 @@ def generate_product_share_pie(
         fontsize=13,
         title_fontsize=14,
     )
-    legend.get_title().set_fontweight("bold")
+    legend.set_title("Product", prop={"weight": "bold", "size": 14})
 
     fig.tight_layout(rect=[0.06, 0.06, 0.94, 0.95])
 
@@ -1547,9 +1547,9 @@ def generate_fresh_fruit_tea_sales_table(
         row_colors.append(_row_color(row["item_name"]))
 
     fig_height = max(3.5, min(14, 0.4 * len(table_rows) + 1.8))
-    fig, ax = plt.subplots(figsize=(10, fig_height))
+    fig, ax = plt.subplots(figsize=(8.5, fig_height))
     ax.axis("off")
-    ax.set_title(title, pad=10)
+    ax.set_title(title, pad=4)
 
     table = ax.table(
         cellText=table_rows,
@@ -1560,7 +1560,7 @@ def generate_fresh_fruit_tea_sales_table(
     )
     table.auto_set_font_size(False)
     table.set_fontsize(9)
-    table.scale(1, 1.3)
+    table.scale(1, 1.2)
 
     for row_idx in range(len(table_rows)):
         color = row_colors[row_idx]
@@ -1573,7 +1573,7 @@ def generate_fresh_fruit_tea_sales_table(
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
-    fig.tight_layout()
+    fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.9])
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
     return output_path
