@@ -401,6 +401,10 @@ def _assign_drink_category(df: pd.DataFrame) -> pd.DataFrame:
 
     drink_category = pd.Series("Other", index=df.index)
     drink_category = drink_category.mask(
+        combined.str.contains("mosa signature", na=False) & (drink_category == "Other"),
+        "Mosa Signature",
+    )
+    drink_category = drink_category.mask(
         combined.str.contains("fresh fruit tea|fruit tea", na=False)
         & (drink_category == "Other"),
         "Fresh Fruit Tea",
@@ -1369,6 +1373,9 @@ def main() -> None:
         df_last_3_months,
         tea_bases=["Four Seasons", "Green"],
     )
+    last_3_tea_base_by_category_all = _compute_tea_base_share_by_drink_category(
+        df_last_3_months
+    )
     last_3_tea_base_by_category_green_inclusive = _compute_tea_base_share_by_drink_category(
         df_last_3_months,
         tea_bases=["Four Seasons", "Green"],
@@ -1393,6 +1400,7 @@ def main() -> None:
         df,
         tea_bases=["Four Seasons", "Green"],
     )
+    global_tea_base_by_category_all = _compute_tea_base_share_by_drink_category(df)
     global_tea_base_by_category_green_inclusive = _compute_tea_base_share_by_drink_category(
         df,
         tea_bases=["Four Seasons", "Green"],
@@ -1508,6 +1516,9 @@ def main() -> None:
     last_3_tea_base_by_category.to_csv(
         processed_dir / "last_3_months_tea_base_by_drink_category.csv", index=False
     )
+    last_3_tea_base_by_category_all.to_csv(
+        processed_dir / "last_3_months_tea_base_by_drink_category_all.csv", index=False
+    )
     last_3_tea_base_by_category_green_inclusive.to_csv(
         processed_dir / "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
         index=False,
@@ -1535,6 +1546,9 @@ def main() -> None:
     )
     global_tea_base_by_category.to_csv(
         processed_dir / "global_tea_base_by_drink_category.csv", index=False
+    )
+    global_tea_base_by_category_all.to_csv(
+        processed_dir / "global_tea_base_by_drink_category_all.csv", index=False
     )
     global_tea_base_by_category_green_inclusive.to_csv(
         processed_dir / "global_tea_base_by_drink_category_green_inclusive.csv",

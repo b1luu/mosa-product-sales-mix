@@ -1262,6 +1262,7 @@ def generate_tea_base_by_drink_category_stacked(
 
     base_order = ["Four Seasons", "Green"]
     category_order = [
+        "Mosa Signature",
         "Fresh Fruit Tea",
         "Milk Tea",
         "Au Lait",
@@ -1357,6 +1358,7 @@ def generate_tea_base_by_drink_category_heatmap(
 
     base_order = ["Four Seasons", "Green"]
     category_order = [
+        "Mosa Signature",
         "Fresh Fruit Tea",
         "Milk Tea",
         "Au Lait",
@@ -1913,6 +1915,20 @@ def main() -> None:
         "Green Tea Base by Drink Category (incl. Genmai, Oct 1 - Dec 31)",
         "Green",
     )
+    tgy_category_pie_output = generate_tea_base_category_pie(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_all.csv",
+        "last_3_months_tgy_oolong_by_category_pie.png",
+        "TGY Oolong Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "TGY Oolong",
+    )
+    green_category_pie_official_output = generate_tea_base_category_pie(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_all.csv",
+        "last_3_months_green_by_category_pie_official.png",
+        "Green Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "Green",
+    )
     fresh_fruit_tea_sales_table_output = generate_fresh_fruit_tea_sales_table(
         base_dir,
         "last_3_months_product_mix.csv",
@@ -2003,6 +2019,8 @@ def main() -> None:
     print(f"Saved figure: {tea_base_by_category_heatmap_output}")
     print(f"Saved figure: {four_seasons_category_pie_output}")
     print(f"Saved figure: {green_category_pie_output}")
+    print(f"Saved figure: {tgy_category_pie_output}")
+    print(f"Saved figure: {green_category_pie_official_output}")
     print(f"Saved figure: {fresh_fruit_tea_sales_table_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
