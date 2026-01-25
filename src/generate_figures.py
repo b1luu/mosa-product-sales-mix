@@ -6,6 +6,7 @@ from pathlib import Path
 from matplotlib import font_manager
 from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from config import EXCLUDE_ITEM_PATTERNS
@@ -541,6 +542,7 @@ def generate_product_share_pie(
     title: str,
     top_n: int | None = None,
     category_filter: str | None = None,
+    color_rules: list[tuple[str, str]] | None = None,
 ) -> Path:
     """Create a pie chart for product share of total sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -614,6 +616,18 @@ def generate_product_share_pie(
     labels = df["label"].tolist()
     values = df["product_sales_pct_of_total"].tolist()
 
+    colors = None
+    if color_rules:
+        cmap = plt.get_cmap("tab20")
+        base_colors = cmap(np.linspace(0, 1, len(df)))
+        colors = list(base_colors)
+        for idx, item in enumerate(df["item_name"].astype(str)):
+            item_lower = item.lower()
+            for key, color in color_rules:
+                if key in item_lower:
+                    colors[idx] = color
+                    break
+
     fig, ax = plt.subplots(figsize=(10, 8))
     wedges, _, autotexts = ax.pie(
         values,
@@ -624,6 +638,7 @@ def generate_product_share_pie(
         wedgeprops={"edgecolor": "white"},
         textprops={"fontsize": 8},
         pctdistance=0.75,
+        colors=colors,
     )
     ax.set_title(title, pad=8)
     ax.axis("equal")
@@ -1464,6 +1479,102 @@ def generate_tea_base_category_pie(
     return output_path
 
 
+def generate_fresh_fruit_tea_sales_table(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a table visualization of fresh fruit tea sales and share."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed product mix is empty; no figure generated.")
+
+    df = df[
+        df["category_name"]
+        .astype(str)
+        .str.contains("fresh fruit tea", case=False, na=False)
+    ]
+    if df.empty:
+        raise ValueError("No fresh fruit tea rows found in product mix.")
+
+    df = (
+        df.groupby("item_name", dropna=False)["total_sales"]
+        .sum()
+        .reset_index()
+        .sort_values("total_sales", ascending=False)
+    )
+    total_sales = df["total_sales"].sum()
+    df["share_pct"] = df["total_sales"] / total_sales if total_sales else 0.0
+
+    def _row_color(item: str) -> str:
+        item_lower = str(item).lower()
+        if "mango" in item_lower:
+            return "#F2A900"
+        if "apple" in item_lower:
+            return "#D32F2F"
+        if "strawberry" in item_lower:
+            return "#EC4899"
+        if "grapefruit" in item_lower:
+            return "#F97316"
+        if "orange" in item_lower:
+            return "#FB923C"
+        if "lemon" in item_lower:
+            return "#FACC15"
+        return "#E5E7EB"
+
+    table_rows = []
+    row_colors = []
+    for _, row in df.iterrows():
+        sales_label = _format_currency_k(row["total_sales"])
+        pct_label = _format_pct(row["share_pct"])
+        table_rows.append([row["item_name"], f"{sales_label} ({pct_label})"])
+        row_colors.append(_row_color(row["item_name"]))
+
+    fig_height = max(3.5, min(14, 0.4 * len(table_rows) + 1.8))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    ax.axis("off")
+    ax.set_title(title, pad=10)
+
+    table = ax.table(
+        cellText=table_rows,
+        colLabels=["Product", "Total Sales (Share)"],
+        loc="center",
+        cellLoc="left",
+        colLoc="left",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1, 1.3)
+
+    for row_idx in range(len(table_rows)):
+        color = row_colors[row_idx]
+        table[(row_idx + 1, 0)].set_facecolor(color)
+
+    for col in range(2):
+        table[(0, col)].set_facecolor("#F3F4F6")
+        table[(0, col)].set_text_props(weight="bold", color="#111827")
+
+    figures_dir = base_dir / "figures" / "items"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -1539,6 +1650,10 @@ def main() -> None:
         "Fresh Fruit Tea Sales Percentage by Product (Oct 1 - Dec 31)",
         top_n=10,
         category_filter="fresh fruit tea",
+        color_rules=[
+            ("grapefruit", "#EC4899"),
+            ("strawberry", "#F9A8D4"),
+        ],
     )
     category_3_months_output = generate_category_mix_figure(
         base_dir,
@@ -1790,6 +1905,12 @@ def main() -> None:
         "Green Tea Base by Drink Category (incl. Genmai, Oct 1 - Dec 31)",
         "Green",
     )
+    fresh_fruit_tea_sales_table_output = generate_fresh_fruit_tea_sales_table(
+        base_dir,
+        "last_3_months_product_mix.csv",
+        "last_3_months_fresh_fruit_tea_sales_table.png",
+        "Fresh Fruit Tea Sales Percentage by Product (Oct 1 - Dec 31)",
+    )
     peak_hours_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_hourly_sales.csv",
@@ -1874,6 +1995,7 @@ def main() -> None:
     print(f"Saved figure: {tea_base_by_category_heatmap_output}")
     print(f"Saved figure: {four_seasons_category_pie_output}")
     print(f"Saved figure: {green_category_pie_output}")
+    print(f"Saved figure: {fresh_fruit_tea_sales_table_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
     print(f"Saved figure: {peak_hours_weekend_last_month_output}")
