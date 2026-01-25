@@ -277,7 +277,7 @@ def _assign_tea_base(df: pd.DataFrame) -> pd.DataFrame:
         df[modifiers_col].astype(str) if modifiers_col else pd.Series("", index=df.index)
     )
     # Remove topping modifiers that should not drive tea base assignment.
-    modifiers_text = modifiers_text.str.replace(r"[^,]*jelly[^,]*", "", regex=True)
+    modifiers_text = modifiers_text.str.replace(r"(?i)[^,]*jelly[^,]*", "", regex=True)
     category_text = (
         df[category_col].astype(str) if category_col else pd.Series("", index=df.index)
     )
