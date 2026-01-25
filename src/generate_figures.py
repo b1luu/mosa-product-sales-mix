@@ -1314,6 +1314,156 @@ def generate_tea_base_by_drink_category_stacked(
     return output_path
 
 
+def generate_tea_base_by_drink_category_heatmap(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+) -> Path:
+    """Create a heatmap for tea base share by drink category."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed tea base by category is empty; no figure generated.")
+
+    base_order = ["Four Seasons", "Green"]
+    category_order = [
+        "Fresh Fruit Tea",
+        "Milk Tea",
+        "Au Lait",
+        "Brewed Tea",
+        "Matcha",
+        "Smoothie/Slush",
+        "Other",
+    ]
+    df["tea_base"] = df["tea_base"].fillna("Unknown")
+    df["drink_category"] = df["drink_category"].fillna("Other")
+
+    pivot = (
+        df.pivot_table(
+            index="tea_base",
+            columns="drink_category",
+            values="share_of_tea_base",
+            aggfunc="sum",
+        )
+        .fillna(0.0)
+    )
+    pivot = pivot.reindex(index=base_order, fill_value=0.0)
+    pivot = pivot.reindex(columns=category_order, fill_value=0.0)
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    im = ax.imshow(pivot.values, cmap="YlGnBu", vmin=0, vmax=1)
+    ax.set_title(title, pad=6)
+    ax.set_xlabel("Drink Category")
+    ax.set_ylabel("Tea Base")
+    ax.set_xticks(range(len(pivot.columns)))
+    ax.set_xticklabels(pivot.columns, rotation=30, ha="right")
+    ax.set_yticks(range(len(pivot.index)))
+    ax.set_yticklabels(pivot.index)
+
+    for i in range(pivot.shape[0]):
+        for j in range(pivot.shape[1]):
+            ax.text(
+                j,
+                i,
+                _format_pct(pivot.values[i, j]),
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="#111827",
+            )
+
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.ax.set_ylabel("Share of Tea Base Sales", rotation=90)
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "tea_base"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
+def generate_tea_base_category_pie(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    tea_base: str,
+) -> Path:
+    """Create a pie chart of drink category share for a tea base."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed tea base by category is empty; no figure generated.")
+
+    base_df = df[df["tea_base"].astype(str) == tea_base]
+    if base_df.empty:
+        raise ValueError(f"No rows found for tea base: {tea_base}")
+
+    base_df = base_df.sort_values("share_of_tea_base", ascending=False)
+    labels = base_df["drink_category"].fillna("Other")
+    values = base_df["share_of_tea_base"]
+
+    fig, ax = plt.subplots(figsize=(8, 7))
+    wedges, _, autotexts = ax.pie(
+        values,
+        labels=None,
+        autopct=lambda pct: f"{pct:.1f}%",
+        startangle=90,
+        counterclock=False,
+        wedgeprops={"edgecolor": "white"},
+        textprops={"fontsize": 9},
+        pctdistance=0.75,
+    )
+    ax.set_title(title, pad=8)
+    ax.axis("equal")
+
+    for text in autotexts:
+        text.set_fontweight("bold")
+        text.set_color("#1F2937")
+
+    ax.legend(
+        wedges,
+        labels,
+        title="Drink Category",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+    )
+
+    fig.tight_layout()
+
+    figures_dir = base_dir / "figures" / "tea_base"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 # --- Entry point ---
 def main() -> None:
     base_dir = Path(__file__).resolve().parents[1]
@@ -1620,6 +1770,26 @@ def main() -> None:
         "last_3_months_tea_base_by_drink_category.png",
         "Tea Base Share by Drink Category (Oct 1 - Dec 31)",
     )
+    tea_base_by_category_heatmap_output = generate_tea_base_by_drink_category_heatmap(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_tea_base_by_drink_category_heatmap.png",
+        "Tea Base Share by Drink Category (Heatmap, Oct 1 - Dec 31)",
+    )
+    four_seasons_category_pie_output = generate_tea_base_category_pie(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_four_seasons_by_category_pie.png",
+        "Four Seasons Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "Four Seasons",
+    )
+    green_category_pie_output = generate_tea_base_category_pie(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_green_by_category_pie.png",
+        "Green Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "Green",
+    )
     peak_hours_last_month_output = generate_peak_hours_figure(
         base_dir,
         "last_month_hourly_sales.csv",
@@ -1701,6 +1871,9 @@ def main() -> None:
     print(f"Saved figure: {tea_base_last_3_months_output}")
     print(f"Saved figure: {tea_base_global_output}")
     print(f"Saved figure: {tea_base_by_category_last_3_months_output}")
+    print(f"Saved figure: {tea_base_by_category_heatmap_output}")
+    print(f"Saved figure: {four_seasons_category_pie_output}")
+    print(f"Saved figure: {green_category_pie_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
     print(f"Saved figure: {peak_hours_weekend_last_month_output}")
