@@ -628,7 +628,7 @@ def generate_product_share_pie(
                     colors[idx] = color
                     break
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(12, 10))
     wedges, _, autotexts = ax.pie(
         values,
         labels=None,
