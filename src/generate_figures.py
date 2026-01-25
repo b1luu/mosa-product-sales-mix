@@ -105,7 +105,7 @@ def generate_product_mix_figure(
     fig_height = max(4, min(20, 0.3 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
     bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
-    ax.set_title(title, pad=4)
+    ax.set_title(title, pad=3)
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel("Product")
 
