@@ -16,7 +16,7 @@ Anomaly detection is intentionally offered in multiple flavors (weekday baseline
 Co-purchase analysis uses transaction-level baskets with configurable support and lift thresholds. These filters are meant to keep the results interpretable in low-frequency contexts, and the implementation captures support, confidence, and lift along with pair-level sales impact to give both statistical and business relevance.
 
 ## Data Handling
-Raw exports remain local and are excluded from version control. Only aggregated outputs and charts are used for reporting. Private exports with richer fields (e.g., `Source`) are used to refine channel splits when present; otherwise, the standard export is used. Topping counts are derived from `Modifiers Applied` after removing non-topping tokens such as sugar/ice levels and tea base selections.
+Raw exports remain local and are excluded from version control. Only aggregated outputs and charts are used for reporting. Private exports with richer fields (e.g., `Source`) are used to refine channel splits when present; otherwise, the standard export is used. Topping counts are derived from `Modifiers Applied` after removing non-topping tokens such as sugar/ice levels and tea base selections. For tea base assignment, modifiers containing "jelly" are ignored so toppings like Osmanthus Tie Guan Yin Jelly do not force a TGY base.
 Net sales fields are parsed when available to support revenue-accurate category views. Where net sales are missing, gross sales are used consistently across outputs. All CSV outputs are structured to be Tableau-friendly (tidy columns, one row per entity per window).
 
 ## Limitations
