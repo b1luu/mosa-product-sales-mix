@@ -648,7 +648,7 @@ def generate_product_share_pie(
         text.set_color("#1F2937")
         text.set_fontsize(14)
 
-    ax.legend(
+    legend = ax.legend(
         wedges,
         labels,
         title="Product",
@@ -659,6 +659,7 @@ def generate_product_share_pie(
         fontsize=13,
         title_fontsize=14,
     )
+    legend.get_title().set_fontweight("bold")
 
     fig.tight_layout(rect=[0.06, 0.06, 0.94, 0.95])
 
