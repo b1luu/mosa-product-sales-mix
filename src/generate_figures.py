@@ -1521,17 +1521,17 @@ def generate_fresh_fruit_tea_sales_table(
     def _row_color(item: str) -> str:
         item_lower = str(item).lower()
         if "mango" in item_lower:
-            return "#F2A900"
-        if "apple" in item_lower:
-            return "#D32F2F"
-        if "strawberry" in item_lower:
-            return "#EC4899"
-        if "grapefruit" in item_lower:
             return "#F97316"
         if "orange" in item_lower:
-            return "#FB923C"
+            return "#FDBA74"
+        if "apple" in item_lower:
+            return "#D32F2F"
         if "lemon" in item_lower:
             return "#FACC15"
+        if "grapefruit" in item_lower:
+            return "#EC4899"
+        if "strawberry" in item_lower:
+            return "#F9A8D4"
         return "#E5E7EB"
 
     table_rows = []
@@ -1651,6 +1651,10 @@ def main() -> None:
         top_n=10,
         category_filter="fresh fruit tea",
         color_rules=[
+            ("mango", "#F97316"),
+            ("orange", "#FDBA74"),
+            ("apple", "#D32F2F"),
+            ("lemon", "#FACC15"),
             ("grapefruit", "#EC4899"),
             ("strawberry", "#F9A8D4"),
         ],
