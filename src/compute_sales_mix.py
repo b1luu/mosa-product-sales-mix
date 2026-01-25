@@ -525,6 +525,7 @@ def _compute_milk_type_mix(df: pd.DataFrame) -> pd.DataFrame:
 def _compute_tea_base_share_by_drink_category(
     df: pd.DataFrame,
     tea_bases: list[str] | None = None,
+    tea_base_aliases: dict[str, str] | None = None,
 ) -> pd.DataFrame:
     """Compute tea base share split by drink category."""
     if df.empty:
@@ -536,6 +537,10 @@ def _compute_tea_base_share_by_drink_category(
         raise ValueError("Missing required column: tea_base or drink_category")
 
     base_df = df.copy()
+    if tea_base_aliases:
+        base_df = base_df.assign(
+            tea_base=base_df["tea_base"].map(tea_base_aliases).fillna(base_df["tea_base"])
+        )
     if tea_bases:
         base_df = base_df[base_df["tea_base"].isin(tea_bases)]
 
@@ -1364,6 +1369,11 @@ def main() -> None:
         df_last_3_months,
         tea_bases=["Four Seasons", "Green"],
     )
+    last_3_tea_base_by_category_green_inclusive = _compute_tea_base_share_by_drink_category(
+        df_last_3_months,
+        tea_bases=["Four Seasons", "Green"],
+        tea_base_aliases={"Genmai Green": "Green"},
+    )
     last_3_topping_popularity = _compute_topping_popularity(df_last_3_months)
     last_3_order_count = df_last_3_months["order_id"].nunique()
     last_3_hourly = _compute_hourly_sales(df_last_3_months)
@@ -1382,6 +1392,11 @@ def main() -> None:
     global_tea_base_by_category = _compute_tea_base_share_by_drink_category(
         df,
         tea_bases=["Four Seasons", "Green"],
+    )
+    global_tea_base_by_category_green_inclusive = _compute_tea_base_share_by_drink_category(
+        df,
+        tea_bases=["Four Seasons", "Green"],
+        tea_base_aliases={"Genmai Green": "Green"},
     )
     global_daily_sales = _compute_daily_sales(df)
     global_daily_sales_zscore = _compute_daily_sales_zscore(global_daily_sales)
@@ -1493,6 +1508,10 @@ def main() -> None:
     last_3_tea_base_by_category.to_csv(
         processed_dir / "last_3_months_tea_base_by_drink_category.csv", index=False
     )
+    last_3_tea_base_by_category_green_inclusive.to_csv(
+        processed_dir / "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
+        index=False,
+    )
     last_3_topping_popularity.to_csv(
         processed_dir / "last_3_months_topping_popularity.csv", index=False
     )
@@ -1516,6 +1535,10 @@ def main() -> None:
     )
     global_tea_base_by_category.to_csv(
         processed_dir / "global_tea_base_by_drink_category.csv", index=False
+    )
+    global_tea_base_by_category_green_inclusive.to_csv(
+        processed_dir / "global_tea_base_by_drink_category_green_inclusive.csv",
+        index=False,
     )
     global_daily_sales.to_csv(
         processed_dir / "global_daily_sales.csv", index=False

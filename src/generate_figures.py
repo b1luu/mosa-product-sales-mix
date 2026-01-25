@@ -1772,22 +1772,22 @@ def main() -> None:
     )
     tea_base_by_category_heatmap_output = generate_tea_base_by_drink_category_heatmap(
         base_dir,
-        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
         "last_3_months_tea_base_by_drink_category_heatmap.png",
-        "Tea Base Share by Drink Category (Heatmap, Oct 1 - Dec 31)",
+        "Tea Base Share by Drink Category (Green incl. Genmai, Oct 1 - Dec 31)",
     )
     four_seasons_category_pie_output = generate_tea_base_category_pie(
         base_dir,
-        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
         "last_3_months_four_seasons_by_category_pie.png",
         "Four Seasons Tea Base by Drink Category (Oct 1 - Dec 31)",
         "Four Seasons",
     )
     green_category_pie_output = generate_tea_base_category_pie(
         base_dir,
-        "last_3_months_tea_base_by_drink_category.csv",
+        "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
         "last_3_months_green_by_category_pie.png",
-        "Green Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "Green Tea Base by Drink Category (incl. Genmai, Oct 1 - Dec 31)",
         "Green",
     )
     peak_hours_last_month_output = generate_peak_hours_figure(
