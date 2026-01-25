@@ -117,6 +117,7 @@ python3 src/generate_figures.py
 - Channel mix: `channel_group` classifies rows into Hungry Panda, DoorDash, Uber Eats, Square Online, In Person, or Other. In-person orders are split into `Kiosk` vs `Counter`.
 - Channel mix uses `data/private/channelmix-raw.csv` when available to map `Source` values (Register, Kiosk, Square Online) more accurately than the standard export.
 - Tea base mapping: derived from item names, modifiers, and categories. See `reports/tea_base_mapping.md` for rule order and signature overrides.
+- Tea base by drink category: primary outputs use the standard tea base mapping; additional "green-inclusive" outputs roll `Genmai Green` into `Green` for category breakdown charts only (files ending in `_green_inclusive.csv`).
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 - Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, filters to baskets with 2-6 items, and outputs support, confidence, lift, and pair-level sales for the last 3 months. Pairs below 0.5% support or lift < 1.5 are filtered out to reduce noise.
