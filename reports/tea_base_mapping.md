@@ -16,6 +16,7 @@ This mapping powers the tea base mix chart and helps audit how bases are assigne
 Notes:
 - Green is applied before Four Seasons so fruit tea choices stay accurate.
 - Matcha always wins, even in blends.
+- Modifiers containing "jelly" are ignored for tea base assignment so toppings like Osmanthus Tie Guan Yin Jelly do not force a TGY base.
 
 ## Signature Overrides
 
