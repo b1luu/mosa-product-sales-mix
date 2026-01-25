@@ -640,7 +640,7 @@ def generate_product_share_pie(
         pctdistance=0.75,
         colors=colors,
     )
-    fig.suptitle(title, y=0.98)
+    fig.suptitle(title, y=0.98, fontsize=14, fontweight="bold")
     ax.axis("equal")
 
     for text in autotexts:
@@ -654,7 +654,8 @@ def generate_product_share_pie(
         loc="center left",
         bbox_to_anchor=(1, 0.5),
         frameon=False,
-        fontsize=8,
+        fontsize=10,
+        title_fontsize=11,
     )
 
     fig.tight_layout(rect=[0, 0, 0.82, 0.95])
