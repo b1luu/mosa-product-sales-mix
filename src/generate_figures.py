@@ -656,8 +656,8 @@ def generate_product_share_pie(
         bbox_to_anchor=(0.98, 0.05),
         bbox_transform=fig.transFigure,
         frameon=False,
-        fontsize=14,
-        title_fontsize=15,
+        fontsize=13,
+        title_fontsize=14,
     )
 
     fig.tight_layout(rect=[0.06, 0.06, 0.94, 0.95])
