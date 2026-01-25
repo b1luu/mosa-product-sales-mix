@@ -651,14 +651,14 @@ def generate_product_share_pie(
         wedges,
         labels,
         title="Product",
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
+        loc="lower right",
+        bbox_to_anchor=(0.98, 0.02),
         frameon=False,
         fontsize=10,
         title_fontsize=11,
     )
 
-    fig.tight_layout(rect=[0, 0, 0.82, 0.95])
+    fig.tight_layout(rect=[0.04, 0.04, 0.96, 0.95])
 
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
