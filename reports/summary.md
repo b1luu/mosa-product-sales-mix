@@ -21,6 +21,9 @@
 - Labels are assigned primarily from `category_name`; when categories are missing those terms, we explicitly include known Mosa Signature items: TGY Special as Milk Tea and Taiwanese Retro as Au Lait.
 - Other Mosa Signature drinks remain excluded unless their category explicitly indicates Milk Tea or Au Lait.
 
+## Tea Base Mapping Update
+- Modifiers containing "jelly" are ignored for tea base assignment so toppings like Osmanthus Tie Guan Yin Jelly do not force a TGY base.
+
 ## Limitations
 - Coverage bias: some fields (customer ID, modifiers) are incomplete; analyses using those fields apply to known records only.
 - Rule-based mapping: tea base classification depends on menu naming consistency and needs updates as menu items change.
