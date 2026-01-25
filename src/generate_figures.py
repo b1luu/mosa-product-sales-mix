@@ -1547,7 +1547,7 @@ def generate_fresh_fruit_tea_sales_table(
         row_colors.append(_row_color(row["item_name"]))
 
     fig_height = max(3.5, min(14, 0.4 * len(table_rows) + 1.8))
-    fig, ax = plt.subplots(figsize=(8.5, fig_height))
+    fig, ax = plt.subplots(figsize=(6, fig_height))
     ax.axis("off")
     ax.set_title(title, pad=4)
 
