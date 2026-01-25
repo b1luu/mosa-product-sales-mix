@@ -640,7 +640,7 @@ def generate_product_share_pie(
         pctdistance=0.75,
         colors=colors,
     )
-    ax.set_title(title, pad=8)
+    fig.suptitle(title, y=0.98)
     ax.axis("equal")
 
     for text in autotexts:
@@ -657,7 +657,7 @@ def generate_product_share_pie(
         fontsize=8,
     )
 
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 0.82, 0.95])
 
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
