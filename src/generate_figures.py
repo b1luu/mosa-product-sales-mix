@@ -636,7 +636,7 @@ def generate_product_share_pie(
         startangle=90,
         counterclock=False,
         wedgeprops={"edgecolor": "white"},
-        textprops={"fontsize": 8},
+        textprops={"fontsize": 10},
         pctdistance=0.75,
         colors=colors,
     )
@@ -646,19 +646,21 @@ def generate_product_share_pie(
     for text in autotexts:
         text.set_fontweight("bold")
         text.set_color("#1F2937")
+        text.set_fontsize(10)
 
     ax.legend(
         wedges,
         labels,
         title="Product",
         loc="lower right",
-        bbox_to_anchor=(0.98, 0.02),
+        bbox_to_anchor=(0.98, 0.05),
+        bbox_transform=fig.transFigure,
         frameon=False,
         fontsize=10,
         title_fontsize=11,
     )
 
-    fig.tight_layout(rect=[0.04, 0.04, 0.96, 0.95])
+    fig.tight_layout(rect=[0.06, 0.06, 0.94, 0.95])
 
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
