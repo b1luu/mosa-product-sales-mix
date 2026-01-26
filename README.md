@@ -118,6 +118,7 @@ python3 src/generate_figures.py
 - Channel mix uses `data/private/channelmix-raw.csv` when available to map `Source` values (Register, Kiosk, Square Online) more accurately than the standard export.
 - Tea base mapping: derived from item names, modifiers, and categories. Modifiers containing "jelly" are ignored so toppings like Osmanthus Tie Guan Yin Jelly do not force a TGY base. See `reports/tea_base_mapping.md` for rule order and signature overrides.
 - Tea base by drink category: primary outputs use the standard tea base mapping; additional "green-inclusive" outputs roll `Genmai Green` into `Green` for category breakdown charts only (files ending in `_green_inclusive.csv`).
+- Event day analysis: add a local `data/private/event_days.csv` with columns `date` (YYYY-MM-DD) and `event_name`. When present, the pipeline writes `data/processed/event_day_analysis.csv` (per-date metrics) and `data/processed/event_day_summary.csv` (event averages) using weekday-baseline z-scores from `global_daily_sales_zscore.csv`.
 - Milk type mapping: uses `category_name` to classify `Milk Tea` vs `Au Lait`.
 - Fresh fruit tea base mix: filtered to items where `item_name` contains `Fresh Fruit Tea` and base is either `Green` or `Four Seasons`.
 - Item co-purchase analysis: groups items by `Transaction ID`, keeps unique items per order, filters to baskets with 2-6 items, and outputs support, confidence, lift, and pair-level sales for the last 3 months. Pairs below 0.5% support or lift < 1.5 are filtered out to reduce noise.
