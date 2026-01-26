@@ -1936,6 +1936,13 @@ def main() -> None:
         "Black Tea Base by Drink Category (Oct 1 - Dec 31)",
         "Black",
     )
+    buckwheat_category_pie_output = generate_tea_base_category_pie(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_all.csv",
+        "last_3_months_buckwheat_barley_by_category_pie.png",
+        "Buckwheat Barley Tea Base by Drink Category (Oct 1 - Dec 31)",
+        "Buckwheat Barley",
+    )
     fresh_fruit_tea_sales_table_output = generate_fresh_fruit_tea_sales_table(
         base_dir,
         "last_3_months_product_mix.csv",
@@ -2029,6 +2036,7 @@ def main() -> None:
     print(f"Saved figure: {tgy_category_pie_output}")
     print(f"Saved figure: {green_category_pie_official_output}")
     print(f"Saved figure: {black_category_pie_output}")
+    print(f"Saved figure: {buckwheat_category_pie_output}")
     print(f"Saved figure: {fresh_fruit_tea_sales_table_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
