@@ -958,6 +958,73 @@ def _compute_daily_sales_robust_zscore(
     return daily
 
 
+def _compute_event_day_analysis(
+    daily_sales_zscore: pd.DataFrame, events: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Compute event-day sales impact against weekday baselines."""
+    if daily_sales_zscore.empty or events.empty:
+        empty_detail = pd.DataFrame(
+            columns=[
+                "event_name",
+                "date",
+                "weekday",
+                "total_sales",
+                "baseline_mean",
+                "baseline_std",
+                "z_score",
+                "delta_vs_baseline",
+                "pct_vs_baseline",
+            ]
+        )
+        empty_summary = pd.DataFrame(
+            columns=[
+                "event_name",
+                "event_days",
+                "avg_sales",
+                "avg_baseline",
+                "avg_z_score",
+                "avg_pct_vs_baseline",
+            ]
+        )
+        return empty_detail, empty_summary
+
+    events = events.copy()
+    if "date" not in events.columns:
+        raise ValueError("Event days file must include a 'date' column.")
+    if "event_name" not in events.columns:
+        events["event_name"] = "Event"
+
+    events["date"] = pd.to_datetime(events["date"], errors="coerce").dt.date
+    events = events.dropna(subset=["date"])
+    if events.empty:
+        return _compute_event_day_analysis(daily_sales_zscore, pd.DataFrame())
+
+    daily = daily_sales_zscore.copy()
+    daily["date"] = pd.to_datetime(daily["date"], errors="coerce").dt.date
+
+    detail = events.merge(daily, on="date", how="left")
+    detail["delta_vs_baseline"] = detail["total_sales"] - detail["baseline_mean"]
+    detail["pct_vs_baseline"] = detail.apply(
+        lambda row: 0.0
+        if not row.get("baseline_mean")
+        else row["delta_vs_baseline"] / row["baseline_mean"],
+        axis=1,
+    )
+
+    summary = (
+        detail.groupby("event_name", dropna=False)
+        .agg(
+            event_days=("date", "nunique"),
+            avg_sales=("total_sales", "mean"),
+            avg_baseline=("baseline_mean", "mean"),
+            avg_z_score=("z_score", "mean"),
+            avg_pct_vs_baseline=("pct_vs_baseline", "mean"),
+        )
+        .reset_index()
+    )
+    return detail, summary
+
+
 def _extract_pct(modifiers: pd.Series, label: str) -> pd.Series:
     """Extract percent value for a modifier label (e.g., 'Sugar' or 'Ice')."""
     pattern = rf"(\d+)%\s*{label}"
@@ -1418,6 +1485,19 @@ def main() -> None:
     )
     global_daily_sales_rolling = _compute_daily_sales_rolling_zscore(global_daily_sales)
     global_daily_sales_robust = _compute_daily_sales_robust_zscore(global_daily_sales)
+    events_path = base_dir / "data" / "private" / "event_days.csv"
+    event_day_detail = pd.DataFrame()
+    event_day_summary = pd.DataFrame()
+    if events_path.exists():
+        events = pd.read_csv(events_path)
+        event_day_detail, event_day_summary = _compute_event_day_analysis(
+            global_daily_sales_zscore, events
+        )
+    else:
+        print(
+            "Note: event_days.csv not found; skipping event day analysis. "
+            "Add data/private/event_days.csv to enable."
+        )
     global_sugar_pct = _compute_modifier_pct_mix(df, "Sugar")
     global_ice_pct = _compute_modifier_pct_mix(df, "Ice")
     last_3_item_pair_stats = _compute_item_pair_stats(df_last_3_months)
@@ -1574,6 +1654,14 @@ def main() -> None:
     global_daily_sales_robust.to_csv(
         processed_dir / "global_daily_sales_robust_zscore.csv", index=False
     )
+    if not event_day_detail.empty:
+        event_day_detail.to_csv(
+            processed_dir / "event_day_analysis.csv", index=False
+        )
+    if not event_day_summary.empty:
+        event_day_summary.to_csv(
+            processed_dir / "event_day_summary.csv", index=False
+        )
     global_sugar_pct.to_csv(
         processed_dir / "global_sugar_pct_mix.csv", index=False
     )
