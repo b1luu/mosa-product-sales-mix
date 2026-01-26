@@ -41,6 +41,15 @@ If those fields are missing after normalization, the script will exit with a cle
 python3 src/compute_sales_mix.py
 ```
 
+## Quick Start
+```bash
+python3 src/compute_sales_mix.py
+python3 src/generate_figures.py
+```
+Expected outputs:
+- CSVs in `data/processed/`
+- PNGs in `figures/`
+
 ## Pipeline Order
 1) Generate processed CSVs:
 ```bash
@@ -50,6 +59,38 @@ python3 src/compute_sales_mix.py
 ```bash
 python3 src/generate_figures.py
 ```
+
+## Config & Local Files
+- Local-only inputs (not in git):
+  - `data/raw/` (Square exports)
+  - `data/private/` (channel mix exports, event lists)
+- Example local files:
+  - `data/private/channelmix-raw.csv` (optional)
+  - `data/private/event_days.csv` with columns `date` and `event_name`
+
+## Monthly Update Checklist
+1) Replace the raw export in `data/raw/`.
+2) Run `python3 src/compute_sales_mix.py`.
+3) Run `python3 src/generate_figures.py`.
+4) Review updated `reports/` notes and key charts.
+
+## Key Outputs Map
+- Product mix: `data/processed/last_3_months_product_mix.csv` → `figures/items/last_3_months_product_mix.png`
+- Category mix: `data/processed/last_3_months_category_mix.csv` → `figures/drink_share/last_3_months_category_mix.png`
+- Tea base mix: `data/processed/last_3_months_tea_base_mix.csv` → `figures/tea_base/last_3_months_tea_base_mix.png`
+- Tea base by drink category: `data/processed/last_3_months_tea_base_by_drink_category_all.csv` → `figures/tea_base/last_3_months_tgy_oolong_by_category_pie.png`
+- Event day analysis: `data/processed/event_day_summary.csv` → table review in Excel/Tableau
+
+## Known Assumptions
+- Refund handling: refunds removed unless notes match Hungry Panda patterns.
+- Tea base mapping is rule-based and documented in `reports/tea_base_mapping.md`.
+- Modifiers containing "jelly" are ignored for tea base assignment to avoid topping leakage.
+- "Green-inclusive" tea base breakdowns roll `Genmai Green` into `Green` for those charts only.
+
+## Troubleshooting
+- Missing required columns: ensure the export is the detailed line-item report.
+- Empty outputs: check that the date range includes data and sales fields are populated.
+- Event analysis missing: add `data/private/event_days.csv` and re-run the pipeline.
 
 ## Current Outputs
 - `data/processed/last_month_category_mix.csv`
