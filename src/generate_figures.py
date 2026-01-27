@@ -671,18 +671,18 @@ def generate_product_share_pie(
         startangle=90,
         counterclock=False,
         wedgeprops={"edgecolor": "white"},
-        textprops={"fontsize": 23},
+        textprops={"fontsize": 25},
         pctdistance=0.75,
         radius=1.3 if pie_scale >= 1.3 else 1.0,
         colors=colors,
     )
-    fig.suptitle(title, y=0.98, fontsize=24, fontweight="bold")
+    fig.suptitle(title, y=0.98, fontsize=29, fontweight="bold")
     ax.axis("equal")
 
     for text in autotexts:
         text.set_fontweight("bold")
         text.set_color("#1F2937")
-        text.set_fontsize(23)
+        text.set_fontsize(25)
 
     if legend_output_name is None:
         legend = ax.legend(
