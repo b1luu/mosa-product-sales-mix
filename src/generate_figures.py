@@ -1,7 +1,12 @@
 """Generate PNG figures from processed sales mix outputs."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+_MPLCONFIGDIR = Path(__file__).resolve().parents[1] / ".mplconfig"
+os.environ.setdefault("MPLCONFIGDIR", str(_MPLCONFIGDIR))
+os.environ.setdefault("MPLBACKEND", "Agg")
 
 from matplotlib import font_manager
 from matplotlib.ticker import FuncFormatter
@@ -540,7 +545,7 @@ def generate_category_share_donut(
         textprops={"fontsize": 9},
         pctdistance=0.75,
     )
-    ax.set_title(title, pad=8, fontsize=22)
+    ax.set_title(title, pad=8, fontsize=37)
     ax.axis("equal")
 
     for text in autotexts:
@@ -1480,6 +1485,9 @@ def generate_tea_base_category_pie(
     output_name: str,
     title: str,
     tea_base: str,
+    donut: bool = False,
+    legend_output_name: str | None = None,
+    center_scale: float = 0.8,
 ) -> Path:
     """Create a pie chart of drink category share for a tea base."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -1506,37 +1514,130 @@ def generate_tea_base_category_pie(
     values = base_df["share_of_tea_base"]
 
     fig, ax = plt.subplots(figsize=(8, 7))
+    wedgeprops = {"edgecolor": "white"}
+    if donut:
+        wedgeprops["width"] = 0.4
     wedges, _, autotexts = ax.pie(
         values,
         labels=None,
         autopct=lambda pct: f"{pct:.1f}%",
         startangle=90,
         counterclock=False,
-        wedgeprops={"edgecolor": "white"},
+        wedgeprops=wedgeprops,
         textprops={"fontsize": 9},
         pctdistance=0.75,
     )
-    ax.set_title(title, pad=8)
+    ax.set_title(title, pad=8, fontsize=37)
     ax.axis("equal")
 
     for text in autotexts:
         text.set_fontweight("bold")
         text.set_color("#1F2937")
 
-    ax.legend(
-        wedges,
-        labels,
-        title="Drink Category",
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
-        frameon=False,
-    )
+    if legend_output_name is None:
+        ax.legend(
+            wedges,
+            labels,
+            title="Drink Category",
+            loc="center left",
+            bbox_to_anchor=(1, 0.5),
+            frameon=False,
+        )
 
-    fig.tight_layout()
+    if donut:
+        margin = max(0.0, (1 - center_scale) / 2)
+        ax.set_position([margin, margin, center_scale, center_scale])
+        fig.subplots_adjust(top=0.92)
+    else:
+        fig.tight_layout()
 
     figures_dir = base_dir / "figures" / "tea_base"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+
+    if legend_output_name is not None:
+        legend_height = max(3.0, 0.4 * len(labels) + 1.6)
+        legend_fig, legend_ax = plt.subplots(figsize=(6, legend_height))
+        legend_ax.axis("off")
+        legend = legend_fig.legend(
+            wedges,
+            labels,
+            title="Drink Category",
+            loc="center left",
+            frameon=False,
+            fontsize=12,
+            title_fontsize=13,
+        )
+        legend.set_title("Drink Category", prop={"weight": "bold", "size": 13})
+        legend_fig.tight_layout()
+        legend_path = figures_dir / legend_output_name
+        legend_fig.savefig(legend_path, dpi=200)
+        plt.close(legend_fig)
+
+    return output_path
+
+
+def generate_tea_base_sales_table(
+    base_dir: Path,
+    processed_name: str,
+    output_name: str,
+    title: str,
+    tea_base: str,
+) -> Path:
+    """Create a table visualization of tea base sales by drink category."""
+    processed_path = base_dir / "data" / "processed" / processed_name
+    if not processed_path.exists():
+        raise FileNotFoundError(f"Missing processed file: {processed_path}")
+
+    chosen_font = _set_cjk_font()
+    if chosen_font is None:
+        print(
+            "Warning: no CJK font found; Chinese characters may not render. "
+            "Install a font like Noto Sans CJK SC."
+        )
+
+    df = pd.read_csv(processed_path)
+    if df.empty:
+        raise ValueError("Processed tea base by category is empty; no figure generated.")
+
+    base_df = df[df["tea_base"].astype(str) == tea_base]
+    if base_df.empty:
+        raise ValueError(f"No rows found for tea base: {tea_base}")
+
+    base_df = base_df.sort_values("total_sales", ascending=False)
+
+    table_rows = []
+    for _, row in base_df.iterrows():
+        sales_label = _format_currency_k(row["total_sales"])
+        pct_label = _format_pct(row["share_of_tea_base"])
+        table_rows.append([row["drink_category"], f"{sales_label} ({pct_label})"])
+
+    fig_height = max(3.5, min(12, 0.45 * len(table_rows) + 1.8))
+    fig, ax = plt.subplots(figsize=(6.5, fig_height))
+    ax.axis("off")
+    ax.set_title(title, pad=2)
+
+    table = ax.table(
+        cellText=table_rows,
+        colLabels=["Drink Category", "Total Sales (Share)"],
+        loc="center",
+        cellLoc="left",
+        colLoc="left",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1, 1.2)
+
+    for col in range(2):
+        table[(0, col)].set_facecolor("#F3F4F6")
+        table[(0, col)].set_text_props(weight="bold", color="#111827")
+
+    figures_dir = base_dir / "figures" / "tea_base"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    output_path = figures_dir / output_name
+    fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.96])
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
     return output_path
@@ -1988,6 +2089,22 @@ def main() -> None:
         "last_3_months_tgy_oolong_by_category_pie.png",
         "TGY Oolong Tea Base by Drink Category (Oct 1 - Dec 31)",
         "TGY Oolong",
+        donut=True,
+        legend_output_name="last_3_months_tgy_oolong_by_category_pie_legend.png",
+        center_scale=0.8,
+    )
+    tgy_category_pie_legend_output = (
+        base_dir
+        / "figures"
+        / "tea_base"
+        / "last_3_months_tgy_oolong_by_category_pie_legend.png"
+    )
+    tgy_category_sales_table_output = generate_tea_base_sales_table(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_all.csv",
+        "last_3_months_tgy_oolong_by_category_sales_table.png",
+        "TGY Oolong Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
+        "TGY Oolong",
     )
     green_category_pie_official_output = generate_tea_base_category_pie(
         base_dir,
@@ -2104,6 +2221,8 @@ def main() -> None:
     print(f"Saved figure: {four_seasons_category_pie_output}")
     print(f"Saved figure: {green_category_pie_output}")
     print(f"Saved figure: {tgy_category_pie_output}")
+    print(f"Saved figure: {tgy_category_pie_legend_output}")
+    print(f"Saved figure: {tgy_category_sales_table_output}")
     print(f"Saved figure: {green_category_pie_official_output}")
     print(f"Saved figure: {black_category_pie_output}")
     print(f"Saved figure: {buckwheat_category_pie_output}")
