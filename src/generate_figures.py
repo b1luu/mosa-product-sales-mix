@@ -2097,6 +2097,39 @@ def main() -> None:
         "last_3_months_four_seasons_by_category_pie.png",
         "Four Seasons Tea Base by Drink Category (Oct 1 - Dec 31)",
         "Four Seasons",
+        donut=True,
+        legend_output_name="last_3_months_four_seasons_by_category_pie_legend.png",
+        center_scale=0.8,
+        title_fontsize=17,
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+        },
+        pct_fontsize=14,
+        edge_color="black",
+        edge_width=1.0,
+    )
+    four_seasons_category_pie_legend_output = (
+        base_dir
+        / "figures"
+        / "tea_base"
+        / "last_3_months_four_seasons_by_category_pie_legend.png"
+    )
+    four_seasons_category_sales_table_output = generate_tea_base_sales_table(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
+        "last_3_months_four_seasons_by_category_sales_table.png",
+        "Four Seasons Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
+        "Four Seasons",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+        },
+        width_scale=0.6,
     )
     green_category_pie_output = generate_tea_base_category_pie(
         base_dir,
@@ -2104,6 +2137,39 @@ def main() -> None:
         "last_3_months_green_by_category_pie.png",
         "Green Tea Base by Drink Category (incl. Genmai, Oct 1 - Dec 31)",
         "Green",
+        donut=True,
+        legend_output_name="last_3_months_green_by_category_pie_legend.png",
+        center_scale=0.8,
+        title_fontsize=17,
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+        },
+        pct_fontsize=14,
+        edge_color="black",
+        edge_width=1.0,
+    )
+    green_category_pie_legend_output = (
+        base_dir
+        / "figures"
+        / "tea_base"
+        / "last_3_months_green_by_category_pie_legend.png"
+    )
+    green_category_sales_table_output = generate_tea_base_sales_table(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_green_inclusive.csv",
+        "last_3_months_green_by_category_sales_table.png",
+        "Green Tea Base Sales by Drink Category (incl. Genmai, Oct 1 - Dec 31)",
+        "Green",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+        },
+        width_scale=0.6,
     )
     tgy_category_pie_output = generate_tea_base_category_pie(
         base_dir,
@@ -2291,7 +2357,11 @@ def main() -> None:
     print(f"Saved figure: {tea_base_by_category_last_3_months_output}")
     print(f"Saved figure: {tea_base_by_category_heatmap_output}")
     print(f"Saved figure: {four_seasons_category_pie_output}")
+    print(f"Saved figure: {four_seasons_category_pie_legend_output}")
+    print(f"Saved figure: {four_seasons_category_sales_table_output}")
     print(f"Saved figure: {green_category_pie_output}")
+    print(f"Saved figure: {green_category_pie_legend_output}")
+    print(f"Saved figure: {green_category_sales_table_output}")
     print(f"Saved figure: {tgy_category_pie_output}")
     print(f"Saved figure: {tgy_category_pie_legend_output}")
     print(f"Saved figure: {tgy_category_sales_table_output}")
