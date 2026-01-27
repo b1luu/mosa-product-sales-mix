@@ -69,13 +69,12 @@ def _render_product_mix_figure(
     fig_height = max(4, min(20, 0.3 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
     bars = ax.barh(df["label"], df["total_sales"], color=colors)
-    ax.set_title(title, pad=14)
+    ax.set_title(title, pad=3)
     ax.set_xlabel("Total Sales")
     ax.set_ylabel("Product")
 
     ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
     ax.grid(axis="x", linestyle="--", alpha=0.3)
-    ax.margins(y=0.06)
 
     for label in ax.get_yticklabels():
         label.set_fontweight("bold")
@@ -88,10 +87,10 @@ def _render_product_mix_figure(
     ]
     ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
     max_sales = df["total_sales"].max()
-    ax.set_xlim(0, max_sales * 1.2)
+    ax.set_xlim(0, max_sales * 1.3)
 
     # Legend removed to avoid overlap on dense charts.
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    fig.tight_layout()
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
     return output_path
