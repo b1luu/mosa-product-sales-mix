@@ -2071,6 +2071,7 @@ def main() -> None:
     print(f"Saved figure: {top_products_3_months_output}")
     print(f"Saved figure: {product_share_last_3_months_pie_output}")
     print(f"Saved figure: {fruit_tea_last_3_months_pie_output}")
+    print(f"Saved figure: {fruit_tea_last_3_months_pie_legend_output}")
     print(f"Saved figure: {category_3_months_output}")
     print(f"Saved figure: {pareto_last_month_output}")
     print(f"Saved figure: {donut_last_month_output}")
