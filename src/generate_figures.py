@@ -1489,6 +1489,10 @@ def generate_tea_base_category_pie(
     legend_output_name: str | None = None,
     center_scale: float = 0.8,
     title_fontsize: int = 37,
+    color_map: dict[str, str] | None = None,
+    pct_fontsize: float = 9,
+    edge_color: str = "white",
+    edge_width: float = 1.0,
 ) -> Path:
     """Create a pie chart of drink category share for a tea base."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -1513,9 +1517,12 @@ def generate_tea_base_category_pie(
     base_df = base_df.sort_values("share_of_tea_base", ascending=False)
     labels = base_df["drink_category"].fillna("Other")
     values = base_df["share_of_tea_base"]
+    colors = None
+    if color_map:
+        colors = [color_map.get(label, None) for label in labels]
 
     fig, ax = plt.subplots(figsize=(8, 7))
-    wedgeprops = {"edgecolor": "white"}
+    wedgeprops = {"edgecolor": edge_color, "linewidth": edge_width}
     if donut:
         wedgeprops["width"] = 0.4
     wedges, _, autotexts = ax.pie(
@@ -1525,8 +1532,9 @@ def generate_tea_base_category_pie(
         startangle=90,
         counterclock=False,
         wedgeprops=wedgeprops,
-        textprops={"fontsize": 9},
+        textprops={"fontsize": pct_fontsize},
         pctdistance=0.75,
+        colors=colors,
     )
     ax.set_title(title, pad=8, fontsize=title_fontsize)
     ax.axis("equal")
@@ -1534,6 +1542,7 @@ def generate_tea_base_category_pie(
     for text in autotexts:
         text.set_fontweight("bold")
         text.set_color("#1F2937")
+        text.set_fontsize(pct_fontsize)
 
     if legend_output_name is None:
         ax.legend(
@@ -1586,6 +1595,7 @@ def generate_tea_base_sales_table(
     output_name: str,
     title: str,
     tea_base: str,
+    color_map: dict[str, str] | None = None,
 ) -> Path:
     """Create a table visualization of tea base sales by drink category."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -1609,11 +1619,10 @@ def generate_tea_base_sales_table(
 
     base_df = base_df.sort_values("share_of_tea_base", ascending=False)
 
-    palette = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
     row_colors = []
-    if palette:
-        for idx in range(len(base_df)):
-            row_colors.append(palette[idx % len(palette)])
+    if color_map:
+        for label in base_df["drink_category"]:
+            row_colors.append(color_map.get(label, None))
 
     table_rows = []
     for row_idx, row in enumerate(base_df.itertuples(index=False)):
@@ -1637,8 +1646,8 @@ def generate_tea_base_sales_table(
     table.set_fontsize(9)
     table.scale(1, 1.2)
 
-    if row_colors:
-        for row_idx, color in enumerate(row_colors, start=1):
+    for row_idx, color in enumerate(row_colors, start=1):
+        if color:
             table[(row_idx, 0)].set_facecolor(color)
 
     for col in range(2):
@@ -2104,6 +2113,15 @@ def main() -> None:
         legend_output_name="last_3_months_tgy_oolong_by_category_pie_legend.png",
         center_scale=0.8,
         title_fontsize=17,
+        color_map={
+            "Mosa Signature": "#7EA8D2",
+            "Milk Tea": "#E0B376",
+            "Brewed Tea": "#96C698",
+            "Au Lait": "#DB9595",
+        },
+        pct_fontsize=13,
+        edge_color="black",
+        edge_width=1.0,
     )
     tgy_category_pie_legend_output = (
         base_dir
@@ -2117,6 +2135,12 @@ def main() -> None:
         "last_3_months_tgy_oolong_by_category_sales_table.png",
         "TGY Oolong Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
         "TGY Oolong",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+        },
     )
     green_category_pie_official_output = generate_tea_base_category_pie(
         base_dir,
