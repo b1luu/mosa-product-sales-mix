@@ -2114,12 +2114,12 @@ def main() -> None:
         center_scale=0.8,
         title_fontsize=17,
         color_map={
-            "Mosa Signature": "#7EA8D2",
-            "Milk Tea": "#E0B376",
-            "Brewed Tea": "#96C698",
-            "Au Lait": "#DB9595",
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
         },
-        pct_fontsize=13,
+        pct_fontsize=14,
         edge_color="black",
         edge_width=1.0,
     )
