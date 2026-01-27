@@ -2155,6 +2155,7 @@ def main() -> None:
             "Milk Tea": "#F9C784",
             "Brewed Tea": "#A7DCA9",
             "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
         },
         pct_fontsize=14,
         edge_color="black",
@@ -2177,6 +2178,7 @@ def main() -> None:
             "Milk Tea": "#F9C784",
             "Brewed Tea": "#A7DCA9",
             "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
         },
         width_scale=0.6,
     )
