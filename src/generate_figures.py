@@ -1488,6 +1488,7 @@ def generate_tea_base_category_pie(
     donut: bool = False,
     legend_output_name: str | None = None,
     center_scale: float = 0.8,
+    title_fontsize: int = 37,
 ) -> Path:
     """Create a pie chart of drink category share for a tea base."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -1527,7 +1528,7 @@ def generate_tea_base_category_pie(
         textprops={"fontsize": 9},
         pctdistance=0.75,
     )
-    ax.set_title(title, pad=8, fontsize=37)
+    ax.set_title(title, pad=8, fontsize=title_fontsize)
     ax.axis("equal")
 
     for text in autotexts:
@@ -1606,13 +1607,19 @@ def generate_tea_base_sales_table(
     if base_df.empty:
         raise ValueError(f"No rows found for tea base: {tea_base}")
 
-    base_df = base_df.sort_values("total_sales", ascending=False)
+    base_df = base_df.sort_values("share_of_tea_base", ascending=False)
+
+    palette = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+    row_colors = []
+    if palette:
+        for idx in range(len(base_df)):
+            row_colors.append(palette[idx % len(palette)])
 
     table_rows = []
-    for _, row in base_df.iterrows():
-        sales_label = _format_currency_k(row["total_sales"])
-        pct_label = _format_pct(row["share_of_tea_base"])
-        table_rows.append([row["drink_category"], f"{sales_label} ({pct_label})"])
+    for row_idx, row in enumerate(base_df.itertuples(index=False)):
+        sales_label = _format_currency_k(row.total_sales)
+        pct_label = _format_pct(row.share_of_tea_base)
+        table_rows.append([row.drink_category, f"{sales_label} ({pct_label})"])
 
     fig_height = max(3.5, min(12, 0.45 * len(table_rows) + 1.8))
     fig, ax = plt.subplots(figsize=(6.5, fig_height))
@@ -1629,6 +1636,10 @@ def generate_tea_base_sales_table(
     table.auto_set_font_size(False)
     table.set_fontsize(9)
     table.scale(1, 1.2)
+
+    if row_colors:
+        for row_idx, color in enumerate(row_colors, start=1):
+            table[(row_idx, 0)].set_facecolor(color)
 
     for col in range(2):
         table[(0, col)].set_facecolor("#F3F4F6")
@@ -2092,6 +2103,7 @@ def main() -> None:
         donut=True,
         legend_output_name="last_3_months_tgy_oolong_by_category_pie_legend.png",
         center_scale=0.8,
+        title_fontsize=17,
     )
     tgy_category_pie_legend_output = (
         base_dir
