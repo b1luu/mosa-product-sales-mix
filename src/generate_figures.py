@@ -2275,6 +2275,41 @@ def main() -> None:
         "last_3_months_buckwheat_barley_by_category_pie.png",
         "Buckwheat Barley Tea Base by Drink Category (Oct 1 - Dec 31)",
         "Buckwheat Barley",
+        donut=True,
+        legend_output_name="last_3_months_buckwheat_barley_by_category_pie_legend.png",
+        center_scale=0.8,
+        title_fontsize=17,
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
+        },
+        pct_fontsize=14,
+        edge_color="black",
+        edge_width=1.0,
+    )
+    buckwheat_category_pie_legend_output = (
+        base_dir
+        / "figures"
+        / "tea_base"
+        / "last_3_months_buckwheat_barley_by_category_pie_legend.png"
+    )
+    buckwheat_category_sales_table_output = generate_tea_base_sales_table(
+        base_dir,
+        "last_3_months_tea_base_by_drink_category_all.csv",
+        "last_3_months_buckwheat_barley_by_category_sales_table.png",
+        "Buckwheat Barley Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
+        "Buckwheat Barley",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
+        },
+        width_scale=0.6,
     )
     fresh_fruit_tea_sales_table_output = generate_fresh_fruit_tea_sales_table(
         base_dir,
@@ -2382,6 +2417,8 @@ def main() -> None:
     print(f"Saved figure: {black_category_pie_legend_output}")
     print(f"Saved figure: {black_category_sales_table_output}")
     print(f"Saved figure: {buckwheat_category_pie_output}")
+    print(f"Saved figure: {buckwheat_category_pie_legend_output}")
+    print(f"Saved figure: {buckwheat_category_sales_table_output}")
     print(f"Saved figure: {fresh_fruit_tea_sales_table_output}")
     print(f"Saved figure: {peak_hours_last_month_output}")
     print(f"Saved figure: {peak_hours_weekday_last_month_output}")
