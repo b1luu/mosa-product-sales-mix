@@ -540,7 +540,7 @@ def generate_category_share_donut(
         textprops={"fontsize": 9},
         pctdistance=0.75,
     )
-    ax.set_title(title, pad=8)
+    ax.set_title(title, pad=8, fontsize=22)
     ax.axis("equal")
 
     for text in autotexts:
