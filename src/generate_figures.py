@@ -1490,6 +1490,7 @@ def generate_tea_base_category_pie(
     center_scale: float = 0.8,
     title_fontsize: int = 37,
     color_map: dict[str, str] | None = None,
+    default_color: str | None = None,
     pct_fontsize: float = 9,
     edge_color: str = "white",
     edge_width: float = 1.0,
@@ -1519,7 +1520,9 @@ def generate_tea_base_category_pie(
     values = base_df["share_of_tea_base"]
     colors = None
     if color_map:
-        colors = [color_map.get(label, None) for label in labels]
+        colors = [color_map.get(label, default_color) for label in labels]
+    elif default_color:
+        colors = [default_color for _ in labels]
 
     fig, ax = plt.subplots(figsize=(8, 7))
     wedgeprops = {"edgecolor": edge_color, "linewidth": edge_width}
@@ -1596,6 +1599,7 @@ def generate_tea_base_sales_table(
     title: str,
     tea_base: str,
     color_map: dict[str, str] | None = None,
+    default_color: str | None = None,
     width_scale: float = 1.0,
 ) -> Path:
     """Create a table visualization of tea base sales by drink category."""
@@ -1623,7 +1627,9 @@ def generate_tea_base_sales_table(
     row_colors = []
     if color_map:
         for label in base_df["drink_category"]:
-            row_colors.append(color_map.get(label, None))
+            row_colors.append(color_map.get(label, default_color))
+    elif default_color:
+        row_colors = [default_color for _ in base_df["drink_category"]]
 
     table_rows = []
     for row_idx, row in enumerate(base_df.itertuples(index=False)):
@@ -2101,12 +2107,7 @@ def main() -> None:
         legend_output_name="last_3_months_four_seasons_by_category_pie_legend.png",
         center_scale=0.8,
         title_fontsize=17,
-        color_map={
-            "Mosa Signature": "#8DBBEA",
-            "Milk Tea": "#F9C784",
-            "Brewed Tea": "#A7DCA9",
-            "Au Lait": "#F4A6A6",
-        },
+        default_color="#F8E6A8",
         pct_fontsize=14,
         edge_color="black",
         edge_width=1.0,
@@ -2123,12 +2124,7 @@ def main() -> None:
         "last_3_months_four_seasons_by_category_sales_table.png",
         "Four Seasons Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
         "Four Seasons",
-        color_map={
-            "Mosa Signature": "#8DBBEA",
-            "Milk Tea": "#F9C784",
-            "Brewed Tea": "#A7DCA9",
-            "Au Lait": "#F4A6A6",
-        },
+        default_color="#F8E6A8",
         width_scale=0.6,
     )
     green_category_pie_output = generate_tea_base_category_pie(
