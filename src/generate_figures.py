@@ -87,7 +87,7 @@ def _render_product_mix_figure(
     ]
     ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
     max_sales = df["total_sales"].max()
-    ax.set_xlim(0, max_sales * 1.35)
+    ax.set_xlim(0, max_sales * 1.265)
 
     # Legend removed to avoid overlap on dense charts.
     fig.tight_layout()
