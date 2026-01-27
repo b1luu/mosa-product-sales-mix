@@ -581,6 +581,7 @@ def generate_product_share_pie(
     color_rules: list[tuple[str, str]] | None = None,
     legend_output_name: str | None = None,
     pie_scale: float = 1.0,
+    default_color: str | None = None,
 ) -> Path:
     """Create a pie chart for product share of total sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -665,6 +666,10 @@ def generate_product_share_pie(
                 if key in item_lower:
                     colors[idx] = color
                     break
+        if default_color:
+            colors = [color if color is not None else default_color for color in colors]
+    elif default_color:
+        colors = [default_color for _ in range(len(df))]
 
     fig_width = 12 * pie_scale
     fig_height = 10 * pie_scale
@@ -1676,6 +1681,7 @@ def generate_fresh_fruit_tea_sales_table(
     processed_name: str,
     output_name: str,
     title: str,
+    row_color_override: str | None = None,
 ) -> Path:
     """Create a table visualization of fresh fruit tea sales and share."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -1711,6 +1717,8 @@ def generate_fresh_fruit_tea_sales_table(
     df["share_pct"] = df["total_sales"] / total_sales if total_sales else 0.0
 
     def _row_color(item: str) -> str:
+        if row_color_override:
+            return row_color_override
         item_lower = str(item).lower()
         if "mango" in item_lower:
             return "#F97316"
@@ -1844,16 +1852,9 @@ def main() -> None:
         r"Fresh Fruit Tea $\bf{Sales\ Percentage}$ by Product (Oct 1 - Dec 31)",
         top_n=10,
         category_filter="fresh fruit tea",
-        color_rules=[
-            ("mango", "#F97316"),
-            ("orange", "#FDBA74"),
-            ("apple", "#D32F2F"),
-            ("lemon", "#FACC15"),
-            ("grapefruit", "#EC4899"),
-            ("strawberry", "#F9A8D4"),
-        ],
         legend_output_name="last_3_months_fresh_fruit_tea_share_pie_legend.png",
         pie_scale=1.55,
+        default_color="#F8E6A8",
     )
     fruit_tea_last_3_months_pie_legend_output = (
         base_dir
@@ -2107,7 +2108,13 @@ def main() -> None:
         legend_output_name="last_3_months_four_seasons_by_category_pie_legend.png",
         center_scale=0.8,
         title_fontsize=17,
-        default_color="#F8E6A8",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
+        },
         pct_fontsize=14,
         edge_color="black",
         edge_width=1.0,
@@ -2124,7 +2131,13 @@ def main() -> None:
         "last_3_months_four_seasons_by_category_sales_table.png",
         "Four Seasons Tea Base Sales by Drink Category (Oct 1 - Dec 31)",
         "Four Seasons",
-        default_color="#F8E6A8",
+        color_map={
+            "Mosa Signature": "#8DBBEA",
+            "Milk Tea": "#F9C784",
+            "Brewed Tea": "#A7DCA9",
+            "Au Lait": "#F4A6A6",
+            "Fresh Fruit Tea": "#D8C4F2",
+        },
         width_scale=0.6,
     )
     green_category_pie_output = generate_tea_base_category_pie(
@@ -2266,6 +2279,7 @@ def main() -> None:
         "last_3_months_product_mix.csv",
         "last_3_months_fresh_fruit_tea_sales_table.png",
         "Fresh Fruit Tea Sales Percentage by Product (Oct 1 - Dec 31)",
+        row_color_override="#F8E6A8",
     )
     peak_hours_last_month_output = generate_peak_hours_figure(
         base_dir,
