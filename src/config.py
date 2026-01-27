@@ -13,6 +13,9 @@ KEEP_REFUND_PATTERNS = (
 EXCLUDE_ITEM_PATTERNS = (
     r"\btips?\b",
     r"boba tea tote bag",
+    r"cupe tote bag",
+    r"coaster",
+    r"mosa hat",
     r"free drink",
     r"custom amount",
 )
