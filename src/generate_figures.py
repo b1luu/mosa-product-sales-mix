@@ -55,12 +55,54 @@ def _set_cjk_font() -> str | None:
 
 
 # --- Product mix figures ---
+def _render_product_mix_figure(
+    df: pd.DataFrame,
+    title: str,
+    output_path: Path,
+) -> Path:
+    """Render a horizontal bar chart for a product mix dataframe."""
+    categories = sorted(df["category_label"].unique())
+    cmap = plt.get_cmap("tab20")
+    color_map = {cat: cmap(i % cmap.N) for i, cat in enumerate(categories)}
+    colors = df["category_label"].map(color_map)
+
+    fig_height = max(4, min(20, 0.3 * len(df)))
+    fig, ax = plt.subplots(figsize=(10, fig_height))
+    bars = ax.barh(df["label"], df["total_sales"], color=colors)
+    ax.set_title(title, pad=3)
+    ax.set_xlabel("Total Sales")
+    ax.set_ylabel("Product")
+
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: _format_currency_k(x)))
+    ax.grid(axis="x", linestyle="--", alpha=0.3)
+
+    for label in ax.get_yticklabels():
+        label.set_fontweight("bold")
+
+    labels = [
+        f"{_format_currency(sales)} ({_format_pct(pct)})"
+        for sales, pct in zip(
+            df["total_sales"], df["product_sales_pct_of_total"]
+        )
+    ]
+    ax.bar_label(bars, labels=labels, padding=3, fontsize=8)
+    max_sales = df["total_sales"].max()
+    ax.set_xlim(0, max_sales * 1.2)
+
+    # Legend removed to avoid overlap on dense charts.
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=200)
+    plt.close(fig)
+    return output_path
+
+
 def generate_product_mix_figure(
     base_dir: Path,
     processed_name: str,
     output_name: str,
     title: str,
-) -> Path:
+    split_sections: int = 1,
+) -> list[Path]:
     """Create a horizontal bar chart for a product mix file."""
     processed_path = base_dir / "data" / "processed" / processed_name
     if not processed_path.exists():
@@ -97,39 +139,27 @@ def generate_product_mix_figure(
         + ")"
     )
 
-    categories = sorted(df["category_label"].unique())
-    cmap = plt.get_cmap("tab20")
-    color_map = {cat: cmap(i % cmap.N) for i, cat in enumerate(categories)}
-    colors = df["category_label"].map(color_map)
-
-    fig_height = max(4, min(20, 0.3 * len(df)))
-    fig, ax = plt.subplots(figsize=(10, fig_height))
-    bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
-    ax.set_title(title, pad=3)
-    ax.set_xlabel("Percent of Total Sales")
-    ax.set_ylabel("Product")
-
-    ticks = ax.get_xticks()
-    ax.set_xticklabels([_format_pct(tick) for tick in ticks])
-    ax.grid(axis="x", linestyle="--", alpha=0.3)
-
-    for label in ax.get_yticklabels():
-        label.set_fontweight("bold")
-
-    ax.bar_label(bars, labels=[_format_pct(v) for v in df["product_sales_pct_of_total"]], padding=3)
-    max_pct = df["product_sales_pct_of_total"].max()
-    ax.set_xlim(0, max_pct * 1.15)
-
-    # Legend removed to avoid overlap on dense charts.
-
-    fig.tight_layout()
+    if split_sections < 1:
+        raise ValueError("split_sections must be at least 1.")
 
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
-    fig.savefig(output_path, dpi=200)
-    plt.close(fig)
-    return output_path
+
+    if split_sections == 1 or len(df) <= split_sections:
+        return [_render_product_mix_figure(df, title, output_path)]
+
+    stem = output_path.stem
+    suffix = output_path.suffix
+    chunks = np.array_split(df, split_sections)
+    output_paths = []
+    for idx, chunk in enumerate(chunks, start=1):
+        if chunk.empty:
+            continue
+        section_title = f"{title} ({idx}/{split_sections})"
+        section_path = output_path.with_name(f"{stem}_part{idx}{suffix}")
+        output_paths.append(_render_product_mix_figure(chunk, section_title, section_path))
+    return output_paths
 
 
 def generate_top_products_figure(
@@ -1591,17 +1621,19 @@ def main() -> None:
             order_count = int(pd.read_csv(order_count_path)["value"].iloc[0])
         except (KeyError, ValueError, IndexError):
             order_count = None
-    last_month_product_mix_output = generate_product_mix_figure(
+    last_month_product_mix_outputs = generate_product_mix_figure(
         base_dir,
         "last_month_product_mix.csv",
         "last_month_product_mix.png",
         "Product Mix (Dec 2025)",
+        split_sections=3,
     )
-    last_3_months_product_mix_output = generate_product_mix_figure(
+    last_3_months_product_mix_outputs = generate_product_mix_figure(
         base_dir,
         "last_3_months_product_mix.csv",
         "last_3_months_product_mix.png",
         "Product Mix (Oct 1 - Dec 31)",
+        split_sections=3,
     )
     top_products_output = generate_top_products_figure(
         base_dir,
@@ -1992,8 +2024,10 @@ def main() -> None:
         sales_column="total_sales",
         x_label="Total Sales",
     )
-    print(f"Saved figure: {last_month_product_mix_output}")
-    print(f"Saved figure: {last_3_months_product_mix_output}")
+    for output_path in last_month_product_mix_outputs:
+        print(f"Saved figure: {output_path}")
+    for output_path in last_3_months_product_mix_outputs:
+        print(f"Saved figure: {output_path}")
     print(f"Saved figure: {top_products_output}")
     print(f"Saved figure: {top_products_sales_last_3_months_output}")
     print(f"Saved figure: {top_products_25_output}")
