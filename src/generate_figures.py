@@ -215,7 +215,7 @@ def generate_top_products_figure(
     fig_height = max(4, min(12, 0.5 * len(df)))
     fig, ax = plt.subplots(figsize=(10, fig_height))
     bars = ax.barh(df["label"], df["product_sales_pct_of_total"], color=colors)
-    ax.set_title(title, pad=4)
+    ax.set_title(title, pad=0)
     ax.set_xlabel("Percent of Total Sales")
     ax.set_ylabel("Product")
 
@@ -1606,7 +1606,7 @@ def generate_fresh_fruit_tea_sales_table(
     figures_dir = base_dir / "figures" / "items"
     figures_dir.mkdir(parents=True, exist_ok=True)
     output_path = figures_dir / output_name
-    fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.9])
+    fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.99])
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
     return output_path
