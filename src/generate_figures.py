@@ -574,6 +574,8 @@ def generate_product_share_pie(
     top_n: int | None = None,
     category_filter: str | None = None,
     color_rules: list[tuple[str, str]] | None = None,
+    legend_output_name: str | None = None,
+    pie_scale: float = 1.0,
 ) -> Path:
     """Create a pie chart for product share of total sales."""
     processed_path = base_dir / "data" / "processed" / processed_name
@@ -659,7 +661,9 @@ def generate_product_share_pie(
                     colors[idx] = color
                     break
 
-    fig, ax = plt.subplots(figsize=(12, 10))
+    fig_width = 12 * pie_scale
+    fig_height = 10 * pie_scale
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     wedges, _, autotexts = ax.pie(
         values,
         labels=None,
@@ -669,6 +673,7 @@ def generate_product_share_pie(
         wedgeprops={"edgecolor": "white"},
         textprops={"fontsize": 14},
         pctdistance=0.75,
+        radius=1.3 if pie_scale >= 1.3 else 1.0,
         colors=colors,
     )
     fig.suptitle(title, y=0.98, fontsize=24, fontweight="bold")
@@ -679,18 +684,19 @@ def generate_product_share_pie(
         text.set_color("#1F2937")
         text.set_fontsize(14)
 
-    legend = ax.legend(
-        wedges,
-        labels,
-        title="Product",
-        loc="lower right",
-        bbox_to_anchor=(0.98, 0.05),
-        bbox_transform=fig.transFigure,
-        frameon=False,
-        fontsize=13,
-        title_fontsize=14,
-    )
-    legend.set_title("Product", prop={"weight": "bold", "size": 14})
+    if legend_output_name is None:
+        legend = ax.legend(
+            wedges,
+            labels,
+            title="Product",
+            loc="lower right",
+            bbox_to_anchor=(0.98, 0.05),
+            bbox_transform=fig.transFigure,
+            frameon=False,
+            fontsize=13,
+            title_fontsize=14,
+        )
+        legend.set_title("Product", prop={"weight": "bold", "size": 14})
 
     fig.tight_layout(rect=[0.06, 0.06, 0.94, 0.95])
 
@@ -699,6 +705,26 @@ def generate_product_share_pie(
     output_path = figures_dir / output_name
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
+
+    if legend_output_name is not None:
+        legend_height = max(3.0, 0.4 * len(labels) + 1.6)
+        legend_fig, legend_ax = plt.subplots(figsize=(6, legend_height))
+        legend_ax.axis("off")
+        legend = legend_fig.legend(
+            wedges,
+            labels,
+            title="Product",
+            loc="center left",
+            frameon=False,
+            fontsize=13,
+            title_fontsize=14,
+        )
+        legend.set_title("Product", prop={"weight": "bold", "size": 14})
+        legend_fig.tight_layout()
+        legend_path = figures_dir / legend_output_name
+        legend_fig.savefig(legend_path, dpi=200)
+        plt.close(legend_fig)
+
     return output_path
 
 
@@ -1697,6 +1723,14 @@ def main() -> None:
             ("grapefruit", "#EC4899"),
             ("strawberry", "#F9A8D4"),
         ],
+        legend_output_name="last_3_months_fresh_fruit_tea_share_pie_legend.png",
+        pie_scale=1.3,
+    )
+    fruit_tea_last_3_months_pie_legend_output = (
+        base_dir
+        / "figures"
+        / "items"
+        / "last_3_months_fresh_fruit_tea_share_pie_legend.png"
     )
     category_3_months_output = generate_category_mix_figure(
         base_dir,
